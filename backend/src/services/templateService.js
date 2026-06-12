@@ -7,8 +7,8 @@ function httpError(message, status) {
 }
 
 const templateService = {
-  async getTemplates() {
-    return templateRepository.getTemplates();
+  async getTemplates(filters = {}, viewerId = null) {
+    return templateRepository.getTemplates(filters, viewerId);
   },
 
   async getTemplateById(id) {
@@ -19,12 +19,35 @@ const templateService = {
     return template;
   },
 
-  async getActiveTemplates() {
-    return templateRepository.getActiveTemplates();
+  async getActiveTemplates(filters = {}, viewerId = null) {
+    return templateRepository.getActiveTemplates(filters, viewerId);
   },
 
   async createTemplate(templateData, creatorId = null) {
-    return templateRepository.createTemplate(templateData, creatorId);
+    const title = String(templateData.title || templateData.name || "").trim();
+    if (title.length < 2) {
+      throw httpError("Template name is required.", 400);
+    }
+
+    const exercises = Array.isArray(templateData.exercises) ? templateData.exercises : [];
+    if (exercises.length === 0) {
+      throw httpError("Add at least one exercise before saving a template.", 400);
+    }
+
+    const categoryName = templateData.categoryName || templateData.category || "Strength";
+    const durationMin = templateData.durationMin || templateData.durationMinutes || exercises.reduce(
+      (sum, exercise) => sum + Number(exercise.duration || 0),
+      0
+    ) || 30;
+
+    return templateRepository.createTemplate({
+      ...templateData,
+      title,
+      categoryName,
+      durationMin,
+      description: templateData.description || `${title} custom workout template`,
+      exercises
+    }, creatorId);
   },
 
   async updateTemplate(id, templateData) {

@@ -48,7 +48,22 @@ export const AdminTemplates: React.FC = () => {
     setSubmitting(true);
     setError(null);
     try {
-      await templateService.create({ name, category, durationMinutes: duration });
+      await templateService.create({
+        name,
+        title: name,
+        category,
+        categoryName: category,
+        durationMinutes: duration,
+        durationMin: duration,
+        exercises: [
+          {
+            exerciseName: name,
+            categoryName: category,
+            duration,
+            sets: [{ reps: 1, weight: 0 }]
+          }
+        ]
+      });
       setName('');
       await loadData();
     } catch (err: any) {

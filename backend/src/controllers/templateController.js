@@ -3,7 +3,7 @@ const { templateService } = require("../services/templateService");
 const templateController = {
   async getTemplates(req, res, next) {
     try {
-      const templates = await templateService.getTemplates();
+      const templates = await templateService.getTemplates(req.query, req.user?.id);
       res.json(templates);
     } catch (err) {
       next(err);
@@ -57,7 +57,7 @@ const templateController = {
 
   async getActiveTemplates(req, res, next) {
     try {
-      const templates = await templateService.getActiveTemplates();
+      const templates = await templateService.getActiveTemplates(req.query, req.user?.id);
       res.json(templates);
     } catch (err) {
       next(err);

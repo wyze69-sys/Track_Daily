@@ -371,19 +371,50 @@ export const categoryService = {
 
 export interface WorkoutTemplate {
   id: string;
+  title?: string;
   name: string;
+  description?: string;
+  categoryId?: string;
+  categoryName?: string;
   category: string;
+  durationMin?: number;
   durationMinutes: number;
-  createdBy: string;
+  exercises?: WorkoutExercise[];
+  isActive?: boolean;
+  createdBy?: string;
   createdAt: string;
 }
 
+type TemplateQuery = {
+  search?: string;
+  category?: string;
+  mine?: boolean;
+};
+
+type TemplateWriteBody = {
+  title?: string;
+  name?: string;
+  description?: string;
+  categoryId?: string;
+  categoryName?: string;
+  category?: string;
+  durationMin?: number;
+  durationMinutes?: number;
+  exercises: WorkoutExercise[];
+  isActive?: boolean;
+};
+
 export const templateService = {
-  async getAll(): Promise<WorkoutTemplate[]> {
-    return request<WorkoutTemplate[]>(`${API_BASE}/templates`);
+  async getAll(params: TemplateQuery = {}): Promise<WorkoutTemplate[]> {
+    const query = new URLSearchParams();
+    if (params.search) query.set('search', params.search);
+    if (params.category) query.set('category', params.category);
+    if (params.mine) query.set('mine', 'true');
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    return request<WorkoutTemplate[]>(`${API_BASE}/templates${suffix}`);
   },
 
-  async create(body: { name: string; category: string; durationMinutes: number }): Promise<WorkoutTemplate> {
+  async create(body: TemplateWriteBody): Promise<WorkoutTemplate> {
     return request<WorkoutTemplate>(`${API_BASE}/templates`, {
       method: 'POST',
       body: JSON.stringify(body)

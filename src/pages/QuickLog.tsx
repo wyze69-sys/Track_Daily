@@ -21,7 +21,8 @@ import {
   Plus,
   Trash2,
   Dumbbell,
-  ListChecks
+  ListChecks,
+  Save
 } from 'lucide-react';
 
 type DraftSet = { reps: number; weight: number };
@@ -51,10 +52,14 @@ export const QuickLog: React.FC = () => {
   const [note, setNote] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [exerciseSearch, setExerciseSearch] = useState('');
+  const [templateSearch, setTemplateSearch] = useState('');
+  const [templateName, setTemplateName] = useState('');
   const [selectedExercises, setSelectedExercises] = useState<DraftExercise[]>([]);
 
   const [submitting, setSubmitting] = useState(false);
+  const [templateSaving, setTemplateSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadFormOptions() {
@@ -105,10 +110,44 @@ export const QuickLog: React.FC = () => {
       .slice(0, 8);
   }, [library, exerciseSearch, activeCategory?.id]);
 
+  const filteredTemplates = useMemo(() => {
+    const search = templateSearch.trim().toLowerCase();
+    return templates
+      .filter((tpl) => !activeCategory?.name || tpl.category === activeCategory.name || tpl.categoryName === activeCategory.name)
+      .filter((tpl) => {
+        if (!search) return true;
+        return [tpl.name, tpl.title, tpl.description, tpl.category]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(search);
+      })
+      .slice(0, 6);
+  }, [templates, templateSearch, activeCategory?.name]);
+
   const handleTemplateSelect = (tpl: WorkoutTemplate) => {
     setSelectedTemplateId(tpl.id);
-    setWorkoutType(tpl.category);
-    setNote(`Done preset: ${tpl.name}`);
+    setWorkoutType(tpl.category || tpl.categoryName || workoutType);
+    setTemplateName(tpl.name || tpl.title || '');
+    setNote(`Loaded saved workout: ${tpl.name || tpl.title}`);
+    setSuccess(`Loaded ${tpl.name || tpl.title}. You can edit sets before saving today's log.`);
+    setError(null);
+
+    const draftExercises: DraftExercise[] = (tpl.exercises || []).map((exercise) => ({
+      localId: makeId(),
+      exerciseName: exercise.exerciseName || 'Template Exercise',
+      categoryId: exercise.categoryId || tpl.categoryId,
+      categoryName: exercise.categoryName || tpl.categoryName || tpl.category,
+      duration: Number(exercise.duration || 10),
+      sets: (exercise.sets && exercise.sets.length > 0 ? exercise.sets : [{ reps: 10, weight: 0 }]).map((set) => ({
+        reps: Number(set.reps || 0),
+        weight: Number(set.weight || 0)
+      }))
+    }));
+
+    if (draftExercises.length > 0) {
+      setSelectedExercises(draftExercises);
+    }
   };
 
   const addExerciseFromLibrary = (exercise: ExerciseLibraryItem) => {
@@ -193,6 +232,55 @@ export const QuickLog: React.FC = () => {
     setSelectedExercises((current) => current.filter((exercise) => exercise.localId !== exerciseId));
   };
 
+  const buildWorkoutExercises = (): WorkoutExercise[] => selectedExercises.map((exercise) => ({
+    categoryId: exercise.categoryId || activeCategory?.id,
+    categoryName: exercise.categoryName || activeCategory?.name || workoutType,
+    exerciseName: exercise.exerciseName.trim(),
+    duration: Number(exercise.duration || 0),
+    sets: exercise.sets.map((set) => ({
+      reps: Number(set.reps || 0),
+      weight: Number(set.weight || 0)
+    }))
+  }));
+
+  const handleSaveTemplate = async () => {
+    setError(null);
+    setSuccess(null);
+
+    const name = templateName.trim();
+    if (name.length < 2) {
+      setError('Give this custom workout a name before saving it.');
+      return;
+    }
+    if (selectedExercises.length === 0) {
+      setError('Add exercises before saving a custom workout.');
+      return;
+    }
+
+    setTemplateSaving(true);
+    try {
+      const saved = await templateService.create({
+        title: name,
+        name,
+        description: `Custom workout saved from Quick Log with ${selectedExercises.length} exercise(s).`,
+        categoryId: activeCategory?.id,
+        categoryName: activeCategory?.name || workoutType,
+        category: activeCategory?.name || workoutType,
+        durationMin: Math.max(durationMinutes, 1),
+        durationMinutes: Math.max(durationMinutes, 1),
+        exercises: buildWorkoutExercises(),
+        isActive: true
+      });
+      setTemplates((current) => [saved, ...current.filter((tpl) => tpl.id !== saved.id)]);
+      setSelectedTemplateId(saved.id);
+      setSuccess(`Saved '${saved.name}' as your custom workout template.`);
+    } catch (err: any) {
+      setError(err?.message || 'Could not save this custom workout.');
+    } finally {
+      setTemplateSaving(false);
+    }
+  };
+
   const handleQuickSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -217,16 +305,7 @@ export const QuickLog: React.FC = () => {
 
     setSubmitting(true);
     try {
-      const exercises: WorkoutExercise[] = selectedExercises.map((exercise) => ({
-        categoryId: exercise.categoryId || activeCategory?.id,
-        categoryName: exercise.categoryName || activeCategory?.name || workoutType,
-        exerciseName: exercise.exerciseName.trim(),
-        duration: Number(exercise.duration || 0),
-        sets: exercise.sets.map((set) => ({
-          reps: Number(set.reps || 0),
-          weight: Number(set.weight || 0)
-        }))
-      }));
+      const exercises = buildWorkoutExercises();
 
       await workoutService.quickLog({
         workoutType,
@@ -278,6 +357,12 @@ export const QuickLog: React.FC = () => {
         {error && (
           <div className="p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl text-sm font-medium">
             {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl text-sm font-medium">
+            {success}
           </div>
         )}
 
@@ -362,23 +447,50 @@ export const QuickLog: React.FC = () => {
 
             {templates.length > 0 && (
               <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-3">
-                <p className="text-xs font-bold uppercase text-gray-500 tracking-wider">Preset templates</p>
-                <div className="space-y-2">
-                  {templates.slice(0, 3).map((tpl) => (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold uppercase text-gray-500 tracking-wider">Saved workouts</p>
+                    <h3 className="text-sm font-extrabold text-gray-950">Search & load template</h3>
+                  </div>
+                  <Save className="h-4.5 w-4.5 text-teal-700" />
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    value={templateSearch}
+                    onChange={(e) => setTemplateSearch(e.target.value)}
+                    placeholder="Search Push Day, Leg Day..."
+                    className="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-1 focus:ring-teal-500 outline-none"
+                  />
+                </div>
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                  {filteredTemplates.map((tpl) => (
                     <button
                       type="button"
                       key={tpl.id}
                       onClick={() => handleTemplateSelect(tpl)}
-                      className={`w-full text-left p-3 rounded-xl border transition-all ${
+                      className={`w-full text-left p-3 rounded-xl border transition-all active:scale-[0.99] ${
                         selectedTemplateId === tpl.id
                           ? 'border-teal-500 bg-teal-50/60 text-teal-950'
                           : 'border-gray-100 hover:bg-gray-50 text-gray-700'
                       }`}
                     >
-                      <p className="text-xs font-bold">{tpl.name}</p>
-                      <p className="text-[10px] text-gray-500 mt-1 uppercase font-semibold">{tpl.category} • {tpl.durationMinutes}m</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-xs font-bold">{tpl.name || tpl.title}</p>
+                        {tpl.createdBy && (
+                          <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                            Mine
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-1 uppercase font-semibold">
+                        {tpl.category} • {tpl.durationMinutes || tpl.durationMin || 0}m • {tpl.exercises?.length || 0} moves
+                      </p>
                     </button>
                   ))}
+                  {filteredTemplates.length === 0 && (
+                    <p className="text-xs text-gray-500 bg-gray-50 rounded-xl p-3">No saved workout matches this search.</p>
+                  )}
                 </div>
               </div>
             )}
@@ -560,6 +672,27 @@ export const QuickLog: React.FC = () => {
                 <span>EST. XP:</span>
                 <span>+{calculateXpPreview()} XP</span>
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 space-y-2">
+              <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400">
+                Save as custom workout
+              </label>
+              <input
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="Push Day A, Leg Day, Morning Run..."
+                className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white placeholder:text-gray-500 outline-none focus:border-amber-300"
+              />
+              <button
+                type="button"
+                onClick={handleSaveTemplate}
+                disabled={templateSaving || selectedExercises.length === 0}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-white text-gray-950 py-2.5 text-xs font-extrabold hover:bg-amber-100 transition-colors disabled:opacity-40 disabled:hover:bg-white active:scale-[0.99]"
+              >
+                {templateSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                Save Template
+              </button>
             </div>
 
             <div className="p-3 bg-white/5 border border-white/10 rounded-xl rounded-b-lg">

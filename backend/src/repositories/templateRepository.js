@@ -2,9 +2,35 @@ const pool = require("../config/db");
 const { createId } = require("../utils/ids");
 const { mapTemplateRow } = require("../utils/rowMappers");
 
-async function getTemplates() {
+async function getTemplates(filters = {}, viewerId = null) {
+  const conditions = [];
+  const params = [];
+
+  if (viewerId) {
+    conditions.push("(created_by IS NULL OR created_by = ?)");
+    params.push(viewerId);
+  }
+
+  if (filters.search) {
+    conditions.push("(title LIKE ? OR description LIKE ? OR category_name LIKE ?)");
+    const like = `%${filters.search}%`;
+    params.push(like, like, like);
+  }
+
+  if (filters.category || filters.categoryName) {
+    conditions.push("category_name = ?");
+    params.push(filters.category || filters.categoryName);
+  }
+
+  if (filters.mine === "true" && viewerId) {
+    conditions.push("created_by = ?");
+    params.push(viewerId);
+  }
+
+  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
   const [rows] = await pool.execute(
-    "SELECT * FROM workout_templates ORDER BY sort_order ASC, created_at DESC"
+    `SELECT * FROM workout_templates ${where} ORDER BY created_by IS NULL ASC, sort_order ASC, created_at DESC`,
+    params
   );
   return rows.map(mapTemplateRow);
 }
@@ -18,11 +44,10 @@ async function getTemplateById(id) {
   return mapTemplateRow(rows[0]);
 }
 
-async function getActiveTemplates() {
-  const [rows] = await pool.execute(
-    "SELECT * FROM workout_templates WHERE is_active = TRUE ORDER BY sort_order ASC, created_at DESC"
-  );
-  return rows.map(mapTemplateRow);
+async function getActiveTemplates(filters = {}, viewerId = null) {
+  const activeFilters = { ...filters };
+  const templates = await getTemplates(activeFilters, viewerId);
+  return templates.filter((template) => template.isActive);
 }
 
 async function createTemplate(template, creatorId = null) {
