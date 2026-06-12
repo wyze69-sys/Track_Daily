@@ -90,6 +90,25 @@ CREATE TABLE workout_templates (
     CONSTRAINT fk_templates_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
+CREATE TABLE exercise_library (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    category_id VARCHAR(50) NULL,
+    muscle_group VARCHAR(80) NOT NULL DEFAULT 'General',
+    equipment VARCHAR(120) NOT NULL DEFAULT 'Bodyweight',
+    exercise_type VARCHAR(50) NOT NULL DEFAULT 'strength',
+    default_duration INT NOT NULL DEFAULT 10,
+    is_custom BOOLEAN NOT NULL DEFAULT FALSE,
+    created_by VARCHAR(50) NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_exercise_library_name (name),
+    INDEX idx_exercise_library_category (category_id),
+    INDEX idx_exercise_library_muscle (muscle_group),
+    CONSTRAINT fk_library_category FOREIGN KEY (category_id) REFERENCES exercise_categories(id) ON DELETE SET NULL,
+    CONSTRAINT fk_library_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
 CREATE TABLE weight_logs (
     id VARCHAR(50) PRIMARY KEY,
     user_id VARCHAR(50) NOT NULL,

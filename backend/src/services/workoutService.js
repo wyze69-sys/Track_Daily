@@ -103,6 +103,8 @@ const workoutService = {
       xp,
       intensity: workoutData.intensity || "med",
       userWeightAtLog: weightKg,
+      mood: workoutData.mood || workoutData.moodAfterWorkout || null,
+      templateId: workoutData.templateId || workoutData.template_id || null,
       exercises
     });
 

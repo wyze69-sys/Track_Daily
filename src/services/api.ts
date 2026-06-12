@@ -102,6 +102,21 @@ export const authService = {
   }
 };
 
+export interface WorkoutSet {
+  reps: number;
+  weight: number;
+}
+
+export interface WorkoutExercise {
+  id?: string;
+  categoryId?: string;
+  categoryName?: string;
+  exerciseName: string;
+  duration: number;
+  caloriesBurned?: number;
+  sets: WorkoutSet[];
+}
+
 export interface Workout {
   id: string;
   userId: string;
@@ -112,7 +127,17 @@ export interface Workout {
   templateId: string | null;
   xpEarned: number;
   createdAt: string;
+  exercises?: WorkoutExercise[];
 }
+
+type WorkoutWriteBody = {
+  workoutType: string;
+  durationMinutes: number;
+  moodAfterWorkout?: string;
+  note?: string;
+  templateId?: string | null;
+  exercises?: WorkoutExercise[];
+};
 
 export const workoutService = {
   async getAll(): Promise<Workout[]> {
@@ -127,7 +152,7 @@ export const workoutService = {
     return request<Workout | null>(`${API_BASE}/workouts/last`);
   },
 
-  async create(body: { workoutType: string; durationMinutes: number; moodAfterWorkout?: string; note?: string; templateId?: string | null }): Promise<{ workout: Workout; profile: any; xpEarned: number }> {
+  async create(body: WorkoutWriteBody): Promise<{ workout: Workout; profile: any; xpEarned: number }> {
     return request<{ workout: Workout; profile: any; xpEarned: number }>(`${API_BASE}/workouts`, {
       method: 'POST',
       body: JSON.stringify(body)
@@ -147,7 +172,7 @@ export const workoutService = {
     });
   },
 
-  async quickLog(body: { workoutType: string; durationMinutes: number; moodAfterWorkout?: string; note?: string; templateId?: string | null }): Promise<{ workout: Workout; profile: any; xpEarned: number }> {
+  async quickLog(body: WorkoutWriteBody): Promise<{ workout: Workout; profile: any; xpEarned: number }> {
     return request<{ workout: Workout; profile: any; xpEarned: number }>(`${API_BASE}/workouts/quick-log`, {
       method: 'POST',
       body: JSON.stringify(body)
@@ -279,6 +304,44 @@ export interface ExerciseCategory {
   createdBy: string;
   createdAt: string;
 }
+
+export interface ExerciseLibraryItem {
+  id: string;
+  name: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  muscleGroup: string;
+  equipment: string;
+  exerciseType: string;
+  defaultDuration: number;
+  isCustom: boolean;
+  createdAt: string;
+}
+
+export const exerciseLibraryService = {
+  async getAll(params: { search?: string; categoryId?: string; exerciseType?: string } = {}): Promise<ExerciseLibraryItem[]> {
+    const query = new URLSearchParams();
+    if (params.search) query.set('search', params.search);
+    if (params.categoryId) query.set('categoryId', params.categoryId);
+    if (params.exerciseType) query.set('exerciseType', params.exerciseType);
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    return request<ExerciseLibraryItem[]>(`${API_BASE}/exercises${suffix}`);
+  },
+
+  async create(body: {
+    name: string;
+    categoryId?: string | null;
+    muscleGroup?: string;
+    equipment?: string;
+    exerciseType?: string;
+    defaultDuration?: number;
+  }): Promise<ExerciseLibraryItem> {
+    return request<ExerciseLibraryItem>(`${API_BASE}/exercises`, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+  }
+};
 
 export const categoryService = {
   async getAll(): Promise<ExerciseCategory[]> {

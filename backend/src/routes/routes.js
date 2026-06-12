@@ -13,6 +13,7 @@ const announcementRoutes = require("./announcementRoutes");
 const weeklyPlanRoutes = require("./weeklyPlanRoutes");
 const progressRoutes = require("./progressRoutes");
 const aiRoutes = require("./aiRoutes");
+const exerciseRoutes = require("./exerciseRoutes");
 
 const router = Router();
 
@@ -21,6 +22,7 @@ router.use("/profile", profileRoutes);
 router.use("/workouts", workoutRoutes);
 router.use("/weights", weightRoutes);
 router.use("/categories", categoryRoutes);
+router.use("/exercises", exerciseRoutes);
 router.use("/gamification", gamificationRoutes);
 router.use("/templates", templateRoutes);
 router.use("/feedback", feedbackRoutes);

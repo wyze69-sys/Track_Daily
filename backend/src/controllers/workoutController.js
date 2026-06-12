@@ -41,7 +41,8 @@ async function formatLogResponse(userId, workout, xpEarned) {
     duration_minutes: workout.durationMinutes || workout.durationTotal || 0,
     mood: workout.mood || workout.moodAfterWorkout || "",
     note: workout.note || workout.notes || "",
-    xp_earned: xpEarned
+    xp_earned: xpEarned,
+    exercises: workout.exercises || []
   };
 
   return {
@@ -69,7 +70,8 @@ async function formatLogResponse(userId, workout, xpEarned) {
       note: workout.note || workout.notes || "",
       templateId: workout.templateId || null,
       xpEarned: xpEarned,
-      createdAt: workout.createdAt || new Date().toISOString()
+      createdAt: workout.createdAt || new Date().toISOString(),
+      exercises: workout.exercises || []
     },
     profile: {
       totalXp: summary.totalXp,
@@ -121,7 +123,8 @@ const workoutController = {
         category: req.body.category || req.body.categorySlug || req.body.workoutType || req.body.workout_type,
         duration_min: req.body.duration_min || req.body.durationMin || req.body.durationMinutes || req.body.duration_minutes,
         mood: req.body.mood || req.body.moodAfterWorkout,
-        templateId: req.body.templateId || req.body.template_id
+        templateId: req.body.templateId || req.body.template_id,
+        exercises: Array.isArray(req.body.exercises) ? req.body.exercises : undefined
       };
       
       const newWorkout = await workoutService.createWorkout(req.user.id, payload);
@@ -141,7 +144,8 @@ const workoutController = {
         category: req.body.category || req.body.categorySlug || req.body.workoutType || req.body.workout_type || req.body.category_id,
         duration_min: req.body.duration_min || req.body.durationMin || req.body.durationMinutes || req.body.duration_minutes,
         mood: req.body.mood || req.body.moodAfterWorkout,
-        templateId: req.body.templateId || req.body.template_id
+        templateId: req.body.templateId || req.body.template_id,
+        exercises: Array.isArray(req.body.exercises) ? req.body.exercises : undefined
       };
 
       const newWorkout = await workoutService.createWorkout(req.user.id, payload);

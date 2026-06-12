@@ -236,6 +236,27 @@ export const History: React.FC = () => {
                               {w.note}
                             </p>
                           )}
+
+                          {w.exercises && w.exercises.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                              {w.exercises.slice(0, 3).map((exercise, index) => (
+                                <div key={`${w.id}_${exercise.id || index}`} className="rounded-xl border border-gray-100 bg-gray-50/70 px-3 py-2">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="text-xs font-extrabold text-gray-800">{exercise.exerciseName}</span>
+                                    <span className="text-[10px] font-mono font-bold text-gray-500">{exercise.duration}m</span>
+                                  </div>
+                                  {exercise.sets && exercise.sets.length > 0 && (
+                                    <p className="mt-1 text-[10px] text-gray-500 font-semibold">
+                                      {exercise.sets.map((set, setIndex) => `S${setIndex + 1}: ${set.reps} reps${set.weight ? ` @ ${set.weight}kg` : ''}`).join(' • ')}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                              {w.exercises.length > 3 && (
+                                <p className="text-[10px] font-bold text-gray-400">+{w.exercises.length - 3} more exercises</p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
 
