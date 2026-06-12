@@ -3,66 +3,42 @@ import { Link } from 'react-router-dom';
 import { adminService, feedbackService, AdminDashboardData } from '../services/api';
 import { PageContainer } from '../components/layout/PageContainer';
 import {
-  Activity,
   AlertCircle,
-  ArrowUpRight,
-  BarChart3,
-  CheckCircle,
-  ClipboardList,
-  Database,
-  FileCode2,
+  Check,
+  ChevronRight,
   Grid,
   Loader2,
-  Megaphone,
   MessageSquare,
-  Server,
-  ShieldCheck,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Shield,
+  Tag,
   Trophy,
-  Users,
-  Zap
+  Users
 } from 'lucide-react';
 
-type KpiCardProps = {
-  label: string;
-  value: number | string;
-  helper: string;
-  tone: 'slate' | 'blue' | 'emerald' | 'amber';
-  icon: React.ElementType;
+const statusBadge = (status: string) => {
+  const map: Record<string, { bg: string; color: string }> = {
+    active: { bg: 'rgba(163,230,53,0.12)', color: '#a3e635' },
+    pending: { bg: 'rgba(249,115,22,0.12)', color: '#f97316' },
+    reviewed: { bg: 'rgba(56,189,248,0.12)', color: '#38bdf8' },
+    resolved: { bg: 'rgba(163,230,53,0.12)', color: '#a3e635' }
+  };
+  const style = map[status] || { bg: 'rgba(136,136,160,0.12)', color: '#8888a0' };
+  return (
+    <span className="rounded px-2 py-0.5 text-xs capitalize" style={{ background: style.bg, color: style.color, fontWeight: 600 }}>
+      {status}
+    </span>
+  );
 };
-
-const toneMap = {
-  slate: 'border-slate-200 bg-white text-slate-950',
-  blue: 'border-blue-100 bg-blue-50/50 text-blue-950',
-  emerald: 'border-emerald-100 bg-emerald-50/50 text-emerald-950',
-  amber: 'border-amber-100 bg-amber-50/50 text-amber-950'
-};
-
-const iconToneMap = {
-  slate: 'bg-slate-900 text-white',
-  blue: 'bg-blue-700 text-white',
-  emerald: 'bg-emerald-700 text-white',
-  amber: 'bg-amber-500 text-slate-950'
-};
-
-const KpiCard: React.FC<KpiCardProps> = ({ label, value, helper, tone, icon: Icon }) => (
-  <div className={`rounded-2xl border p-5 shadow-xs ${toneMap[tone]}`}>
-    <div className="flex items-start justify-between gap-4">
-      <div>
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p>
-        <p className="mt-3 text-3xl font-black tracking-tight text-slate-950">{value}</p>
-      </div>
-      <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconToneMap[tone]}`}>
-        <Icon className="h-5 w-5" />
-      </span>
-    </div>
-    <p className="mt-3 text-xs font-medium leading-relaxed text-slate-500">{helper}</p>
-  </div>
-);
 
 export const AdminDashboard: React.FC = () => {
   const [data, setData] = useState<AdminDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<'overview' | 'categories' | 'feedback'>('overview');
+  const [search, setSearch] = useState('');
 
   const fetchDashboard = async () => {
     try {
@@ -71,7 +47,7 @@ export const AdminDashboard: React.FC = () => {
       setError(null);
     } catch (err) {
       console.error('Failed to load admin summary indicators', err);
-      setError('Failed to fetch administrative dashboard data.');
+      setError('Failed to fetch administrative data stream.');
     } finally {
       setLoading(false);
     }
@@ -91,229 +67,187 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const pendingFeedbackCount = useMemo(() => {
-    if (!data) return 0;
-    return data.recentFeedback.filter((fb) => fb.status === 'pending').length;
-  }, [data]);
+  const filteredFeedback = useMemo(() => {
+    if (!data) return [];
+    const q = search.trim().toLowerCase();
+    return data.recentFeedback.filter((item) =>
+      item.userName.toLowerCase().includes(q) || item.content.toLowerCase().includes(q)
+    );
+  }, [data, search]);
 
-  const engagementRate = useMemo(() => {
-    if (!data || data.totalUsersCount === 0) return 0;
-    return Math.round((data.activeStreakCount / data.totalUsersCount) * 100);
-  }, [data]);
+  if (loading) {
+    return (
+      <PageContainer>
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
       <div className="space-y-6">
-        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 bg-slate-950 px-6 py-5 text-white">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex items-center gap-4">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-950 shadow-sm">
-                  <ShieldCheck className="h-6 w-6" />
-                </span>
-                <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-400">Admin Workspace</p>
-                  <h1 className="mt-1 text-2xl font-black tracking-tight text-white">Operations Dashboard</h1>
-                  <p className="mt-1 max-w-2xl text-sm text-slate-400">
-                    Separate control room for platform health, student engagement, content setup, and feedback review.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  to="/admin/users"
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/15"
-                >
-                  Manage Users <ArrowUpRight className="h-3.5 w-3.5" />
-                </Link>
-                <Link
-                  to="/admin/feedback"
-                  className="inline-flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-black text-slate-950 transition-colors hover:bg-slate-100"
-                >
-                  Review Feedback <ArrowUpRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: 'rgba(251,191,36,0.12)' }}>
+            <Shield size={20} color="#fbbf24" />
           </div>
-
-          <div className="grid grid-cols-1 divide-y divide-slate-200 bg-slate-50/60 md:grid-cols-3 md:divide-x md:divide-y-0">
-            <div className="flex items-center gap-3 px-6 py-4">
-              <Server className="h-4.5 w-4.5 text-emerald-600" />
-              <div>
-                <p className="text-xs font-bold text-slate-950">System status</p>
-                <p className="text-[11px] font-medium text-slate-500">API and dashboard online</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 px-6 py-4">
-              <Database className="h-4.5 w-4.5 text-blue-600" />
-              <div>
-                <p className="text-xs font-bold text-slate-950">Data scope</p>
-                <p className="text-[11px] font-medium text-slate-500">Aggregated metrics only</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 px-6 py-4">
-              <Activity className="h-4.5 w-4.5 text-amber-600" />
-              <div>
-                <p className="text-xs font-bold text-slate-950">Engagement rate</p>
-                <p className="text-[11px] font-medium text-slate-500">{engagementRate}% active streak coverage</p>
-              </div>
-            </div>
+          <div>
+            <h1 className="text-foreground">Admin Portal</h1>
+            <p className="text-sm text-muted-foreground">Manage users, content & platform data</p>
           </div>
-        </section>
+        </div>
 
         {error && (
-          <div className="flex items-center gap-3 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-semibold text-red-700">
-            <AlertCircle className="h-4.5 w-4.5" />
-            {error}
+          <div className="flex items-center gap-2 rounded-xl p-4 text-sm" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}>
+            <AlertCircle size={16} /> {error}
           </div>
         )}
 
-        {loading ? (
-          <div className="flex items-center justify-center rounded-3xl border border-slate-200 bg-white py-24">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-900" />
-          </div>
-        ) : data && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
-                label="Students"
-                value={data.totalUsersCount}
-                helper="Registered accounts in the FitSync workspace."
-                tone="slate"
-                icon={Users}
-              />
-              <KpiCard
-                label="Workouts"
-                value={data.totalWorkoutsCount}
-                helper="Total submitted workout logs across users."
-                tone="blue"
-                icon={Trophy}
-              />
-              <KpiCard
-                label="Active Streaks"
-                value={data.activeStreakCount}
-                helper="Students currently maintaining activity momentum."
-                tone="emerald"
-                icon={BarChart3}
-              />
-              <KpiCard
-                label="XP Distributed"
-                value={data.totalXpEarned}
-                helper="Gamification points issued by real workout activity."
-                tone="amber"
-                icon={Zap}
-              />
+        {data && (
+          <>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {[
+                { label: 'Total Users', value: data.totalUsersCount, sub: 'Registered accounts' },
+                { label: 'Active Streaks', value: data.activeStreakCount, sub: 'Current activity' },
+                { label: 'Workouts Logged', value: data.totalWorkoutsCount, sub: 'All-time logs' },
+                { label: 'Campus XP', value: data.totalXpEarned, sub: 'Issued by backend' }
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-xl p-4" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                  <p className="mb-1 text-xs uppercase tracking-widest text-muted-foreground">{stat.label}</p>
+                  <p className="text-2xl font-extrabold leading-tight text-foreground">{stat.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{stat.sub}</p>
+                </div>
+              ))}
             </div>
 
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-              <section className="xl:col-span-8 rounded-3xl border border-slate-200 bg-white shadow-xs">
-                <div className="flex flex-col gap-3 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Feedback Queue</p>
-                    <h2 className="mt-1 text-lg font-black tracking-tight text-slate-950">Recent student messages</h2>
-                  </div>
-                  <span className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-black text-amber-800">
-                    <MessageSquare className="h-3.5 w-3.5" />
-                    {pendingFeedbackCount} pending
-                  </span>
-                </div>
+            <div className="flex w-fit flex-wrap gap-1 rounded-xl p-0.5" style={{ background: 'var(--muted)' }}>
+              {(['overview', 'categories', 'feedback'] as const).map((item) => (
+                <button
+                  key={item}
+                  onClick={() => setTab(item)}
+                  className="rounded-lg px-4 py-1.5 text-sm capitalize transition-all"
+                  style={{
+                    background: tab === item ? '#a3e635' : 'transparent',
+                    color: tab === item ? '#09090f' : 'var(--muted-foreground)',
+                    fontWeight: tab === item ? 700 : 400
+                  }}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
 
-                <div className="divide-y divide-slate-100">
-                  {data.recentFeedback.length === 0 ? (
-                    <div className="px-6 py-12 text-center">
-                      <CheckCircle className="mx-auto h-8 w-8 text-emerald-600" />
-                      <p className="mt-3 text-sm font-bold text-slate-900">No feedback waiting</p>
-                      <p className="mt-1 text-xs text-slate-500">The review queue is clear.</p>
+            {tab === 'overview' && (
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <Link to="/admin/users" className="rounded-xl p-5 transition-colors hover:bg-white/[0.03]" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Users size={20} color="#a3e635" />
+                      <div>
+                        <h3 className="text-foreground">User Management</h3>
+                        <p className="text-sm text-muted-foreground">Review student accounts and roles</p>
+                      </div>
                     </div>
-                  ) : (
-                    data.recentFeedback.map((fb) => (
-                      <div key={fb.id} className="px-6 py-4 transition-colors hover:bg-slate-50/70">
-                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                          <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="text-sm font-black text-slate-950">{fb.userName}</p>
-                              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-500">
-                                {new Date(fb.date).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">{fb.content}</p>
-                          </div>
+                    <ChevronRight size={18} className="text-muted-foreground" />
+                  </div>
+                </Link>
+                <Link to="/admin/challenges" className="rounded-xl p-5 transition-colors hover:bg-white/[0.03]" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Trophy size={20} color="#fbbf24" />
+                      <div>
+                        <h3 className="text-foreground">Challenges & Badges</h3>
+                        <p className="text-sm text-muted-foreground">Manage gamified content</p>
+                      </div>
+                    </div>
+                    <ChevronRight size={18} className="text-muted-foreground" />
+                  </div>
+                </Link>
+              </div>
+            )}
 
-                          {fb.status === 'pending' ? (
-                            <button
-                              onClick={() => handleResolveFeedback(fb.id)}
-                              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-3 py-2 text-xs font-black text-white transition-colors hover:bg-slate-800"
-                            >
-                              Mark Reviewed
-                            </button>
-                          ) : (
-                            <span className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700">
-                              <CheckCircle className="h-3.5 w-3.5" /> Reviewed
-                            </span>
-                          )}
+            {tab === 'categories' && (
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-foreground">Exercise Categories</h3>
+                  <Link to="/admin/categories" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition-all hover:brightness-110" style={{ background: '#a3e635', color: '#09090f' }}>
+                    <Plus size={14} /> Add Category
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {data.categories.map((category) => (
+                    <div key={category.id} className="rounded-xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                      <div className="mb-3 flex items-center justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: 'rgba(163,230,53,0.12)' }}>
+                          <Tag size={20} color="#a3e635" />
+                        </div>
+                        <button className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                          <MoreHorizontal size={13} />
+                        </button>
+                      </div>
+                      <p className="font-bold text-foreground">{category.name}</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">Active exercise taxonomy</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {tab === 'feedback' && (
+              <div className="rounded-xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                <div className="flex items-center justify-between p-5 pb-4">
+                  <h3 className="text-foreground">User Feedback</h3>
+                  <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: 'var(--input-background)' }}>
+                    <Search size={13} className="text-muted-foreground" />
+                    <input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search feedback..."
+                      className="w-40 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-0">
+                  {filteredFeedback.length === 0 ? (
+                    <p className="p-8 text-center text-sm text-muted-foreground">No feedback found.</p>
+                  ) : filteredFeedback.map((feedback, index) => (
+                    <div key={feedback.id} className="flex items-start justify-between gap-4 px-5 py-4 transition-colors hover:bg-white/[0.02]" style={{ borderTop: index > 0 ? '1px solid var(--border)' : undefined }}>
+                      <div className="flex min-w-0 flex-1 items-start gap-3">
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: 'rgba(56,189,248,0.1)' }}>
+                          <MessageSquare size={14} color="#38bdf8" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-1 flex items-center gap-2">
+                            <p className="text-sm font-bold text-foreground">{feedback.userName}</p>
+                            <span className="text-xs text-muted-foreground">{new Date(feedback.date).toLocaleDateString()}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{feedback.content}</p>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
-              </section>
-
-              <aside className="xl:col-span-4 space-y-6">
-                <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Operations</p>
-                      <h2 className="mt-1 text-lg font-black tracking-tight text-slate-950">Admin actions</h2>
-                    </div>
-                    <ClipboardList className="h-5 w-5 text-slate-400" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Link to="/admin/categories" className="flex items-center justify-between rounded-2xl border border-slate-100 p-3 text-sm font-bold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50">
-                      <span className="flex items-center gap-2"><Grid className="h-4 w-4" /> Categories</span>
-                      <ArrowUpRight className="h-4 w-4 text-slate-400" />
-                    </Link>
-                    <Link to="/admin/templates" className="flex items-center justify-between rounded-2xl border border-slate-100 p-3 text-sm font-bold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50">
-                      <span className="flex items-center gap-2"><FileCode2 className="h-4 w-4" /> Templates</span>
-                      <ArrowUpRight className="h-4 w-4 text-slate-400" />
-                    </Link>
-                    <Link to="/admin/announcements" className="flex items-center justify-between rounded-2xl border border-slate-100 p-3 text-sm font-bold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50">
-                      <span className="flex items-center gap-2"><Megaphone className="h-4 w-4" /> Announcements</span>
-                      <ArrowUpRight className="h-4 w-4 text-slate-400" />
-                    </Link>
-                  </div>
-                </section>
-
-                <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">Taxonomy</p>
-                      <h2 className="mt-1 text-lg font-black tracking-tight text-slate-950">Workout categories</h2>
-                    </div>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-700">
-                      {data.totalCategoriesCount}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2">
-                    {data.categories.slice(0, 6).map((cat) => (
-                      <div key={cat.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/60 px-3 py-2.5">
-                        <span className="text-sm font-bold text-slate-800">{cat.name}</span>
-                        <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700 ring-1 ring-emerald-100">
-                          Active
-                        </span>
+                      <div className="flex flex-shrink-0 items-center gap-2">
+                        {statusBadge(feedback.status)}
+                        {feedback.status === 'pending' && (
+                          <button
+                            onClick={() => handleResolveFeedback(feedback.id)}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg text-primary transition-colors hover:text-foreground"
+                            style={{ background: 'rgba(163,230,53,0.1)' }}
+                          >
+                            <Check size={13} />
+                          </button>
+                        )}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-                  <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-3 text-xs leading-relaxed text-blue-900">
-                    <strong>Privacy note:</strong> Admin views use aggregate activity and feedback review. Personal workout notes stay out of broad analytics cards.
-                  </div>
-                </section>
-              </aside>
+            <div className="rounded-xl p-4 text-xs text-muted-foreground" style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.12)' }}>
+              <Grid className="mr-2 inline h-4 w-4 text-amber-400" />
+              This admin screen follows the <code>D:\PROJECT\figma</code> Admin Portal layout, but uses real backend dashboard data.
             </div>
-          </div>
+          </>
         )}
       </div>
     </PageContainer>

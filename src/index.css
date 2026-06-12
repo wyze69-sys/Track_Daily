@@ -1,162 +1,189 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Space+Grotesk:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-  --font-display: "Space Grotesk", sans-serif;
+:root {
+  --font-size: 16px;
+  --background: #09090f;
+  --foreground: #f0f0f5;
+  --card: #111118;
+  --card-foreground: #f0f0f5;
+  --popover: #17171f;
+  --popover-foreground: #f0f0f5;
+  --primary: #a3e635;
+  --primary-foreground: #09090f;
+  --secondary: #1e1e2a;
+  --secondary-foreground: #f0f0f5;
+  --muted: #1a1a24;
+  --muted-foreground: #8888a0;
+  --accent: #84cc16;
+  --accent-foreground: #09090f;
+  --destructive: #ef4444;
+  --border: rgba(255, 255, 255, 0.08);
+  --input-background: #1e1e2a;
+  --ring: #a3e635;
+  --chart-1: #a3e635;
+  --chart-2: #38bdf8;
+  --chart-3: #f97316;
+  --chart-4: #a78bfa;
+  --chart-5: #fb7185;
+  --sidebar: #0d0d14;
+  --sidebar-foreground: #f0f0f5;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+}
 
-  /* Natural Tones Color Palette remappings to naturally overhaul the template */
-  --color-teal-50: #F6F8F5;
-  --color-teal-100: #E6ECE4;
-  --color-teal-200: #D6E3D5;
-  --color-teal-300: #BAD0B9;
-  --color-teal-400: #9EC09C;
-  --color-teal-500: #8BA888;
-  --color-teal-600: #8BA888;
-  --color-teal-700: #4A5D48;
-  --color-teal-800: #3E4E3D;
-  --color-teal-900: #2F3B2E;
-  --color-teal-950: #20281F;
+@theme inline {
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input-background: var(--input-background);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --radius-xl: 0.9rem;
+}
 
-  --color-orange-50: #FAF8F5;
-  --color-orange-100: #F1E8D9;
-  --color-orange-200: #E6DBC8;
-  --color-orange-500: #DBC8AC;
-  --color-orange-600: #D48166;
-  --color-orange-700: #C27057;
-  --color-orange-900: #8C4733;
+* {
+  box-sizing: border-box;
+}
 
-  --color-rose-50: #FFF9F7;
-  --color-rose-100: #FFE2D9;
-  --color-rose-500: #D48166;
-  --color-rose-600: #C27057;
-
-  --color-purple-50: #FAF8F5;
-  --color-purple-100: #F1EFE8;
-  --color-purple-700: #A39E8B;
-
-  --color-emerald-50: #F6F8F5;
-  --color-emerald-100: #E6ECE4;
-  --color-emerald-600: #8BA888;
-  --color-emerald-700: #4A5D48;
-  --color-emerald-850: #3E4E3D;
-  --color-emerald-950: #2F3B2E;
-
-  --color-gray-50: #FDFCF8;
-  --color-gray-100: #E6E2D3;
-  --color-gray-200: #D6D1B8;
-  --color-gray-300: #A39E8B;
-  --color-gray-400: #8BA888;
-  --color-gray-500: #7D7863;
-  --color-gray-600: #4A5D48;
-  --color-gray-700: #3E4E3D;
-  --color-gray-800: #333333;
-  --color-gray-900: #2F3B2E;
-
-  --color-slate-50: #FDFCF8;
-  --color-slate-100: #E6E2D3;
-  --color-slate-200: #D6D1B8;
-  --color-slate-300: #A39E8B;
-  --color-slate-400: #8BA888;
-  --color-slate-500: #7D7863;
-  --color-slate-600: #4A5D48;
-  --color-slate-700: #3E4E3D;
-  --color-slate-800: #333333;
-  --color-slate-900: #2F3B2E;
-  --color-slate-950: #20281F;
-
-  --border-radius-2xl: 24px;
+html {
+  font-size: var(--font-size);
+  background: var(--background);
 }
 
 body {
+  margin: 0;
   font-family: var(--font-sans);
-  background-color: #FDFCF8 !important;
-  color: #333333 !important;
+  background: var(--background) !important;
+  color: var(--foreground) !important;
 }
 
-/* Ensure rich typography with high contrast display pairings */
-h1, h2, h3, h4, th {
-  font-family: var(--font-display), var(--font-sans) !important;
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  color: #4A5D48 !important;
+h1, h2, h3, h4 {
+  color: var(--foreground);
+  letter-spacing: -0.03em;
+  font-weight: 800;
 }
 
-/* Default card and panel designs: rounded-2xl should use 24px per design spec */
+button, input, textarea, select {
+  font-family: var(--font-sans);
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+/* Compatibility layer: make older FitSync pages inherit the Figma dark interface instead of the old white UI. */
+.bg-white,
+.bg-gray-50,
+.bg-slate-50,
+.bg-teal-50,
+.bg-emerald-50,
+.bg-purple-50,
+.bg-orange-50,
+.bg-red-50,
+.bg-blue-50,
+.bg-amber-50 {
+  background-color: var(--card) !important;
+}
+
+.bg-gray-100,
+.bg-slate-100,
+.bg-teal-100,
+.bg-emerald-100,
+.bg-purple-100,
+.bg-orange-100,
+.bg-red-100,
+.bg-blue-100,
+.bg-amber-100 {
+  background-color: var(--muted) !important;
+}
+
+.border,
+.border-gray-50,
+.border-gray-100,
+.border-gray-150,
+.border-gray-200,
+.border-slate-100,
+.border-slate-200,
+.border-teal-100,
+.border-emerald-100,
+.border-orange-100,
+.border-purple-100,
+.border-red-100,
+.border-blue-100,
+.border-amber-100 {
+  border-color: var(--border) !important;
+}
+
+.text-gray-950,
+.text-gray-900,
+.text-gray-850,
+.text-gray-800,
+.text-slate-950,
+.text-slate-900,
+.text-slate-800 {
+  color: var(--foreground) !important;
+}
+
+.text-gray-700,
+.text-gray-650,
+.text-gray-600,
+.text-gray-500,
+.text-gray-400,
+.text-slate-700,
+.text-slate-600,
+.text-slate-500,
+.text-slate-400 {
+  color: var(--muted-foreground) !important;
+}
+
+.text-teal-700,
+.text-teal-600,
+.text-emerald-700,
+.text-emerald-600 {
+  color: var(--primary) !important;
+}
+
+.bg-teal-600,
+.bg-teal-700,
+.bg-emerald-600,
+.bg-emerald-700 {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+input, textarea, select {
+  background-color: var(--input-background) !important;
+  border-color: var(--border) !important;
+  color: var(--foreground) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--muted-foreground) !important;
+}
+
+.shadow-xs, .shadow-sm, .shadow-md {
+  box-shadow: none !important;
+}
+
 .rounded-2xl {
-  border-radius: 24px !important;
+  border-radius: 1rem !important;
 }
 
-/* Base button and card styling adjustments to fully integrate components */
-button, select, input, textarea {
-  font-family: var(--font-sans);
-}
-
-.text-gray-500, .text-slate-500 {
-  color: #7D7863 !important;
-}
-
-.text-gray-650 {
-  color: #A39E8B !important;
-}
-
-.text-gray-600, .text-slate-600 {
-  color: #7D7863 !important;
-}
-
-.text-gray-700, .text-slate-700 {
-  color: #333333 !important;
-}
-
-.bg-white {
-  background-color: #ffffff !important;
-}
-
-/* Align and smooth the buttons with the earthy nature theme */
-.bg-teal-600, .bg-emerald-600 {
-  background-color: #8BA888 !important;
-  color: #ffffff !important;
-  border-color: #8BA888 !important;
-}
-.bg-teal-600:hover, .bg-emerald-600:hover {
-  background-color: #4A5D48 !important;
-  border-color: #4A5D48 !important;
-}
-
-.text-teal-600, .text-emerald-600 {
-  color: #8BA888 !important;
-}
-.text-teal-700, .text-emerald-700 {
-  color: #4A5D48 !important;
-}
-
-.bg-teal-50, .bg-emerald-50 {
-  background-color: #F6F8F5 !important;
-  color: #4A5D48 !important;
-}
-
-/* Smooth badges with earthy theme colors */
-.bg-purple-700 {
-  background-color: #A39E8B !important;
-}
-.text-purple-700 {
-  color: #7D7863 !important;
-}
-.bg-purple-100 {
-  background-color: #F1EFE8 !important;
-}
-
-.border-teal-600 {
-  border-color: #8BA888 !important;
-}
-.border-teal-500 {
-  border-color: #8BA888 !important;
-}
-
-/* Add custom animations or micro-transitions */
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 250ms;
+.transition-all, .transition-colors {
+  transition-duration: 220ms;
 }
