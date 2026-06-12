@@ -1,0 +1,6 @@
+{
+  "name": "FitSync v2",
+  "description": "A student-focused workout logbook that helps users show up consistently, featuring quick logging, weekly planning, XP, streaks, badges, and admin management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

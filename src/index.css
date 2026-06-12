@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Space+Grotesk:wght@300..700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-display: "Space Grotesk", sans-serif;
+
+  /* Natural Tones Color Palette remappings to naturally overhaul the template */
+  --color-teal-50: #F6F8F5;
+  --color-teal-100: #E6ECE4;
+  --color-teal-200: #D6E3D5;
+  --color-teal-300: #BAD0B9;
+  --color-teal-400: #9EC09C;
+  --color-teal-500: #8BA888;
+  --color-teal-600: #8BA888;
+  --color-teal-700: #4A5D48;
+  --color-teal-800: #3E4E3D;
+  --color-teal-900: #2F3B2E;
+  --color-teal-950: #20281F;
+
+  --color-orange-50: #FAF8F5;
+  --color-orange-100: #F1E8D9;
+  --color-orange-200: #E6DBC8;
+  --color-orange-500: #DBC8AC;
+  --color-orange-600: #D48166;
+  --color-orange-700: #C27057;
+  --color-orange-900: #8C4733;
+
+  --color-rose-50: #FFF9F7;
+  --color-rose-100: #FFE2D9;
+  --color-rose-500: #D48166;
+  --color-rose-600: #C27057;
+
+  --color-purple-50: #FAF8F5;
+  --color-purple-100: #F1EFE8;
+  --color-purple-700: #A39E8B;
+
+  --color-emerald-50: #F6F8F5;
+  --color-emerald-100: #E6ECE4;
+  --color-emerald-600: #8BA888;
+  --color-emerald-700: #4A5D48;
+  --color-emerald-850: #3E4E3D;
+  --color-emerald-950: #2F3B2E;
+
+  --color-gray-50: #FDFCF8;
+  --color-gray-100: #E6E2D3;
+  --color-gray-200: #D6D1B8;
+  --color-gray-300: #A39E8B;
+  --color-gray-400: #8BA888;
+  --color-gray-500: #7D7863;
+  --color-gray-600: #4A5D48;
+  --color-gray-700: #3E4E3D;
+  --color-gray-800: #333333;
+  --color-gray-900: #2F3B2E;
+
+  --color-slate-50: #FDFCF8;
+  --color-slate-100: #E6E2D3;
+  --color-slate-200: #D6D1B8;
+  --color-slate-300: #A39E8B;
+  --color-slate-400: #8BA888;
+  --color-slate-500: #7D7863;
+  --color-slate-600: #4A5D48;
+  --color-slate-700: #3E4E3D;
+  --color-slate-800: #333333;
+  --color-slate-900: #2F3B2E;
+  --color-slate-950: #20281F;
+
+  --border-radius-2xl: 24px;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #FDFCF8 !important;
+  color: #333333 !important;
+}
+
+/* Ensure rich typography with high contrast display pairings */
+h1, h2, h3, h4, th {
+  font-family: var(--font-display), var(--font-sans) !important;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: #4A5D48 !important;
+}
+
+/* Default card and panel designs: rounded-2xl should use 24px per design spec */
+.rounded-2xl {
+  border-radius: 24px !important;
+}
+
+/* Base button and card styling adjustments to fully integrate components */
+button, select, input, textarea {
+  font-family: var(--font-sans);
+}
+
+.text-gray-500, .text-slate-500 {
+  color: #7D7863 !important;
+}
+
+.text-gray-650 {
+  color: #A39E8B !important;
+}
+
+.text-gray-600, .text-slate-600 {
+  color: #7D7863 !important;
+}
+
+.text-gray-700, .text-slate-700 {
+  color: #333333 !important;
+}
+
+.bg-white {
+  background-color: #ffffff !important;
+}
+
+/* Align and smooth the buttons with the earthy nature theme */
+.bg-teal-600, .bg-emerald-600 {
+  background-color: #8BA888 !important;
+  color: #ffffff !important;
+  border-color: #8BA888 !important;
+}
+.bg-teal-600:hover, .bg-emerald-600:hover {
+  background-color: #4A5D48 !important;
+  border-color: #4A5D48 !important;
+}
+
+.text-teal-600, .text-emerald-600 {
+  color: #8BA888 !important;
+}
+.text-teal-700, .text-emerald-700 {
+  color: #4A5D48 !important;
+}
+
+.bg-teal-50, .bg-emerald-50 {
+  background-color: #F6F8F5 !important;
+  color: #4A5D48 !important;
+}
+
+/* Smooth badges with earthy theme colors */
+.bg-purple-700 {
+  background-color: #A39E8B !important;
+}
+.text-purple-700 {
+  color: #7D7863 !important;
+}
+.bg-purple-100 {
+  background-color: #F1EFE8 !important;
+}
+
+.border-teal-600 {
+  border-color: #8BA888 !important;
+}
+.border-teal-500 {
+  border-color: #8BA888 !important;
+}
+
+/* Add custom animations or micro-transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 250ms;
+}
