@@ -81,7 +81,7 @@ export const AdminCategories: React.FC = () => {
                 <Grid className="h-5 w-5 text-orange-600" />
                 Manage Exercise Categories
               </h1>
-              <p className="text-xs text-gray-500 mt-1">Add, update, or remove exercise categories offered to campus students on FitSync.</p>
+              <p className="text-xs text-gray-500 mt-1">Add, update, or remove exercise categories used by FitSync workouts.</p>
             </div>
           </div>
         </div>

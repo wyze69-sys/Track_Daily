@@ -95,7 +95,7 @@ export const AdminAnnouncements: React.FC = () => {
           
           {/* Form left */}
           <div className="bg-white p-6 rounded-2xl border border-gray-150 shadow-xs h-fit space-y-4">
-            <h3 className="font-bold text-sm tracking-tight text-slate-900 border-b border-gray-50 pb-2">Publish Campus Broadcast</h3>
+            <h3 className="font-bold text-sm tracking-tight text-slate-900 border-b border-gray-50 pb-2">Publish Announcement</h3>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>

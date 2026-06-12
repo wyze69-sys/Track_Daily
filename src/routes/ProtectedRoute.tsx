@@ -15,7 +15,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
         <Loader2 className="h-10 w-10 text-teal-600 animate-spin" />
-        <p className="mt-3 text-sm text-gray-500 font-semibold uppercase tracking-wider">Synchronizing Portal Session...</p>
+        <p className="mt-3 text-sm text-gray-500 font-semibold uppercase tracking-wider">Loading session...</p>
       </div>
     );
   }
@@ -25,7 +25,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
   }
 
   if (allowedRole && user.role !== allowedRole) {
-    // Cross-portal safety fallback
+    // Role safety fallback
     if (user.role === 'admin') {
       return <Navigate to="/admin/dashboard" replace />;
     } else {

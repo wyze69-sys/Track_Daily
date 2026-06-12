@@ -350,7 +350,7 @@ export const QuickLog: React.FC = () => {
           </button>
           <div>
             <h1 className="text-xl font-extrabold tracking-tight text-gray-950">Workout Builder Log</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Pick real exercises, add sets, then save it to your backend history.</p>
+            <p className="text-xs text-gray-500 mt-0.5">Choose exercises, add sets, and save the workout to history.</p>
           </div>
         </div>
 
@@ -698,7 +698,7 @@ export const QuickLog: React.FC = () => {
             <div className="p-3 bg-white/5 border border-white/10 rounded-xl rounded-b-lg">
               <p className="text-[11px] text-gray-400 leading-relaxed font-sans">
                 <Trophy className="inline h-3.5 w-3.5 mr-1 text-amber-300" />
-                This saves real exercises and sets to the backend. The exact XP still comes from the server, not this preview.
+                This preview is an estimate. Saved workouts use the server-calculated XP.
               </p>
             </div>
           </div>

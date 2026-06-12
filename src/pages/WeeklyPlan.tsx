@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { weeklyPlanService, challengeService, Challenge, WeeklyPlan as WeeklyPlanType } from '../services/api';
 import { PageContainer } from '../components/layout/PageContainer';
-import { Calendar, Trophy, Flame, Check, Loader2, Award, Zap } from 'lucide-react';
+import { Calendar, Trophy, Check, Loader2, Award, Zap } from 'lucide-react';
 
 export const WeeklyPlan: React.FC = () => {
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlanType | null>(null);
@@ -70,8 +70,8 @@ export const WeeklyPlan: React.FC = () => {
         
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-gray-950">Campus Weekly Habit Commitments</h1>
-          <p className="text-sm text-gray-500 mt-1 font-medium">Pick a target that matches your busy lecture cycle. Consistency trumps intensity.</p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-gray-950">Weekly Workout Plan</h1>
+          <p className="text-sm text-gray-500 mt-1 font-medium">Choose how many workouts you want to complete this week.</p>
         </div>
 
         {loading ? (
@@ -91,7 +91,7 @@ export const WeeklyPlan: React.FC = () => {
                 </div>
 
                 <p className="text-xs text-gray-550 leading-normal">
-                  How many times do you plan to log exercise this term week? When you complete this number of logs, you automatically fetch a <strong>+50 XP targets completed bonus</strong>.
+                  How many times do you plan to log a workout this week? Complete the target to earn the weekly <strong>+50 XP bonus</strong>.
                 </p>
 
                 {successMsg && (
@@ -103,7 +103,7 @@ export const WeeklyPlan: React.FC = () => {
                 {savingTarget && (
                   <div className="flex items-center gap-2 text-xs text-teal-700 font-mono">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Synchronizing workout targets...
+                    Loading workout targets...
                   </div>
                 )}
 
@@ -135,10 +135,10 @@ export const WeeklyPlan: React.FC = () => {
                     </div>
                     {weeklyPlan.currentCount >= weeklyPlan.targetCount ? (
                       <p className="text-emerald-700 font-semibold flex items-center gap-1">
-                        <Check className="h-3.5 w-3.5" /> Target achieved! Awesome habit.
+                        <Check className="h-3.5 w-3.5" /> Weekly target complete.
                       </p>
                     ) : (
-                      <p className="text-gray-500 leading-normal font-medium">Keep showing up to claim your targets completed rewards.</p>
+                      <p className="text-gray-500 leading-normal font-medium">Log more workouts to complete this week’s target.</p>
                     )}
                   </div>
                 )}
@@ -148,7 +148,7 @@ export const WeeklyPlan: React.FC = () => {
               <div className="space-y-4">
                 <h3 className="font-extrabold text-gray-950 text-base tracking-tight flex items-center gap-2">
                   <Trophy className="h-5 w-5 text-teal-600" />
-                  Active Semester Challenges
+                  Active Challenges
                 </h3>
 
                 <div className="space-y-3">
@@ -209,12 +209,12 @@ export const WeeklyPlan: React.FC = () => {
                 </div>
 
                 <div className="relative space-y-3">
-                  <Flame className="h-6 w-6 text-orange-400 fill-orange-400" />
-                  <h3 className="font-extrabold text-sm tracking-tight text-white leading-none">Habit Building Secrets</h3>
+                  <Calendar className="h-6 w-6 text-teal-100" />
+                  <h3 className="font-extrabold text-sm tracking-tight text-white leading-none">This Week</h3>
                   <p className="text-xs text-teal-100 leading-normal font-sans">
-                    Did you know that students who set a small <strong>2-workout target</strong> are <strong>75% more likely</strong> to maintain workouts through exam weeks than those who go in without targets?
+                    You have logged <strong>{weeklyPlan?.currentCount || 0}</strong> of <strong>{weeklyPlan?.targetCount || 0}</strong> planned workouts.
                   </p>
-                  <p className="text-[10px] text-teal-300 font-mono uppercase tracking-wider font-bold">Start small, show up often.</p>
+                  <p className="text-[10px] text-teal-300 font-mono uppercase tracking-wider font-bold">Updated from your workout history.</p>
                 </div>
               </div>
 

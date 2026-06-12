@@ -129,7 +129,7 @@ export const AdminTemplates: React.FC = () => {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., Campus Jogging Loop, Dorm Squat Routine"
+                  placeholder="e.g., Morning Run, Dorm Squat Routine"
                   className="w-full text-xs p-2.5 rounded-xl border border-gray-200 bg-gray-50/40"
                 />
               </div>

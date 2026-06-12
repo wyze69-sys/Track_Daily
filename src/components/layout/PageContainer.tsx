@@ -3,7 +3,6 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { gamificationService, GamificationSummary } from '../../services/api';
 import {
-  Award,
   BarChart3,
   Calendar,
   ChevronRight,
@@ -39,7 +38,7 @@ const studentNav = [
 ];
 
 const adminNav = [
-  { label: 'Admin Portal', path: '/admin/dashboard', icon: Shield },
+  { label: 'Admin Dashboard', path: '/admin/dashboard', icon: Shield },
   { label: 'Users', path: '/admin/users', icon: Users },
   { label: 'Categories', path: '/admin/categories', icon: Grid },
   { label: 'Templates', path: '/admin/templates', icon: FileCode2 },
@@ -132,12 +131,12 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
             {initialsFor(user?.fullName)}
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-foreground">{user?.fullName || (isAdminRoute ? 'Campus Admin' : 'FitSync User')}</p>
+            <p className="truncate text-sm font-bold text-foreground">{user?.fullName || (isAdminRoute ? 'Admin user' : 'FitSync user')}</p>
             <div className="flex items-center gap-1.5">
               {isAdminRoute ? (
                 <>
                   <Shield size={11} color="#fbbf24" />
-                  <span className="text-[0.7rem] font-bold text-amber-400">Control panel</span>
+                  <span className="text-[0.7rem] font-bold text-amber-400">Admin role</span>
                 </>
               ) : (
                 <>
@@ -174,7 +173,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
                     <span className="flex-1 font-semibold">{item.label}</span>
                     {item.path === '/badges' && !isAdminRoute && (
                       <span className="rounded-lg px-1.5 py-0.5 text-xs font-bold text-orange-500" style={{ background: 'rgba(249,115,22,0.15)' }}>
-                        {stats?.currentStreak || 0}🔥
+                        {stats?.currentStreak || 0} day
                       </span>
                     )}
                     {isActive && <ChevronRight size={13} color="#a3e635" />}
@@ -198,7 +197,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
                   style={{ width: `${Math.min(100, stats.progressToNextLevel || 0)}%`, background: 'linear-gradient(90deg, #84cc16, #a3e635)' }}
                 />
               </div>
-              <p className="mt-1.5 text-[0.65rem] text-muted-foreground">Real XP from your backend</p>
+              <p className="mt-1.5 text-[0.65rem] text-muted-foreground">Progress to next level</p>
             </div>
           </div>
         )}

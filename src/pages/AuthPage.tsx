@@ -44,10 +44,10 @@ export const AuthPage: React.FC = () => {
     try {
       if (isRegister) {
         await register(email, password, fullName);
-        setSuccess('Account created successfully! Synchronizing system profile...');
+        setSuccess('Account created successfully.');
       } else {
         await login(email, password);
-        setSuccess('Success! Entering campus portal...');
+        setSuccess('Signed in successfully.');
       }
     } catch (err: any) {
       setError(err?.message || 'Authentication failed. Please verify credentials.');
@@ -83,8 +83,8 @@ export const AuthPage: React.FC = () => {
         
         <p className="mt-2 text-sm text-gray-500 font-medium">
           {isAdminMode 
-            ? 'University Administration Portal' 
-            : 'A student logbook to show up consistently.'
+            ? 'Admin access' 
+            : 'Workout tracking for students.'
           }
         </p>
       </div>
@@ -121,7 +121,7 @@ export const AuthPage: React.FC = () => {
                   : 'border-transparent text-gray-400 hover:text-gray-600'
               }`}
             >
-              Portal Admin
+              Admin
             </button>
           </div>
 
@@ -196,26 +196,26 @@ export const AuthPage: React.FC = () => {
                 } disabled:bg-gray-400 disabled:cursor-not-allowed`}
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isRegister ? 'Register Student Sync' : isAdminMode ? 'Authorize Admin Portal' : 'Login Logbook'}
+                {isRegister ? 'Create Account' : isAdminMode ? 'Sign In as Admin' : 'Sign In'}
               </button>
             </div>
           </form>
 
-          {/* Quick Demo Assist Links */}
+          {/* Test account shortcuts */}
           <div className="mt-6 pt-5 border-t border-gray-100">
-            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider text-center mb-3">Academic Demo Accounts</p>
+            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider text-center mb-3">Test Accounts</p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setDemoCredentials('student')}
                 className="px-3 py-2 text-xs font-semibold rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-100 transition-all"
               >
-                🎓 Student Account
+                Student Account
               </button>
               <button
                 onClick={() => setDemoCredentials('admin')}
                 className="px-3 py-2 text-xs font-semibold rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-850 border border-orange-100 transition-all"
               >
-                🔐 Admin Portal
+                Admin Account
               </button>
             </div>
           </div>

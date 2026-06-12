@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   announcementService,
   gamificationService,
@@ -12,7 +13,6 @@ import {
 } from '../services/api';
 import { PageContainer } from '../components/layout/PageContainer';
 import {
-  Award,
   Calendar,
   ChevronRight,
   Clock,
@@ -42,6 +42,7 @@ const formatDate = (iso?: string) => {
 };
 
 export const StudentDashboard: React.FC = () => {
+  const { user } = useAuth();
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan | null>(null);
   const [gamification, setGamification] = useState<GamificationSummary | null>(null);
@@ -100,8 +101,8 @@ export const StudentDashboard: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm uppercase tracking-[0.22em] text-muted-foreground">Real workout dashboard</p>
-            <h1 className="mt-0.5 text-2xl font-black text-foreground">Good to see you 👋</h1>
+            <p className="text-sm uppercase tracking-[0.22em] text-muted-foreground">Training overview</p>
+            <h1 className="mt-0.5 text-2xl font-black text-foreground">{user?.fullName ? `${user.fullName.split(' ')[0]}'s dashboard` : 'Dashboard'}</h1>
           </div>
           <Link
             to="/quick-log"
@@ -218,11 +219,6 @@ export const StudentDashboard: React.FC = () => {
               })}
             </div>
           )}
-        </div>
-
-        <div className="rounded-xl p-4 text-sm text-muted-foreground" style={{ background: 'rgba(163,230,53,0.06)', border: '1px solid rgba(163,230,53,0.12)' }}>
-          <Award className="mr-2 inline h-4 w-4 text-primary" />
-          This screen now follows the UI from <code>D:\PROJECT\figma</code>, but the numbers come from your real backend.
         </div>
       </div>
     </PageContainer>

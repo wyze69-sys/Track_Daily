@@ -6,7 +6,6 @@ import {
   AlertCircle,
   Check,
   ChevronRight,
-  Grid,
   Loader2,
   MessageSquare,
   MoreHorizontal,
@@ -47,7 +46,7 @@ export const AdminDashboard: React.FC = () => {
       setError(null);
     } catch (err) {
       console.error('Failed to load admin summary indicators', err);
-      setError('Failed to fetch administrative data stream.');
+      setError('Failed to load admin data.');
     } finally {
       setLoading(false);
     }
@@ -93,8 +92,8 @@ export const AdminDashboard: React.FC = () => {
             <Shield size={20} color="#fbbf24" />
           </div>
           <div>
-            <h1 className="text-foreground">Admin Portal</h1>
-            <p className="text-sm text-muted-foreground">Manage users, content & platform data</p>
+            <h1 className="text-foreground">Admin Dashboard</h1>
+            <p className="text-sm text-muted-foreground">Students, workouts, feedback, and content</p>
           </div>
         </div>
 
@@ -109,9 +108,9 @@ export const AdminDashboard: React.FC = () => {
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {[
                 { label: 'Total Users', value: data.totalUsersCount, sub: 'Registered accounts' },
-                { label: 'Active Streaks', value: data.activeStreakCount, sub: 'Current activity' },
-                { label: 'Workouts Logged', value: data.totalWorkoutsCount, sub: 'All-time logs' },
-                { label: 'Campus XP', value: data.totalXpEarned, sub: 'Issued by backend' }
+                { label: 'Active Streaks', value: data.activeStreakCount, sub: 'Users with a streak' },
+                { label: 'Workouts Logged', value: data.totalWorkoutsCount, sub: 'Workout records' },
+                { label: 'XP Awarded', value: data.totalXpEarned, sub: 'Total earned XP' }
               ].map((stat) => (
                 <div key={stat.label} className="rounded-xl p-4" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
                   <p className="mb-1 text-xs uppercase tracking-widest text-muted-foreground">{stat.label}</p>
@@ -187,7 +186,7 @@ export const AdminDashboard: React.FC = () => {
                         </button>
                       </div>
                       <p className="font-bold text-foreground">{category.name}</p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">Active exercise taxonomy</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">Exercise group</p>
                     </div>
                   ))}
                 </div>
@@ -243,10 +242,6 @@ export const AdminDashboard: React.FC = () => {
               </div>
             )}
 
-            <div className="rounded-xl p-4 text-xs text-muted-foreground" style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.12)' }}>
-              <Grid className="mr-2 inline h-4 w-4 text-amber-400" />
-              This admin screen follows the <code>D:\PROJECT\figma</code> Admin Portal layout, but uses real backend dashboard data.
-            </div>
           </>
         )}
       </div>
