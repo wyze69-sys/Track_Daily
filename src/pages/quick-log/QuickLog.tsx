@@ -11,7 +11,7 @@ import { PageContainer } from '../../components/layout/PageContainer';
 import { ArrowLeft, ListChecks, Loader2 } from 'lucide-react';
 import { DraftExercise, DraftSet } from './types';
 import { useQuickLogData } from './hooks/useQuickLogData';
-import { ExerciseLibraryPanel } from './components/ExerciseLibraryPanel';
+import { ActivitySearchPanel } from './components/ActivitySearchPanel';
 import { TemplatePicker } from './components/TemplatePicker';
 import { SelectedExerciseCard } from './components/SelectedExerciseCard';
 import { WorkoutSummaryPanel } from './components/WorkoutSummaryPanel';
@@ -34,7 +34,6 @@ export const QuickLog: React.FC = () => {
   const [moodAfterWorkout, setMoodAfterWorkout] = useState('Satisfied');
   const [note, setNote] = useState('');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
-  const [exerciseSearch, setExerciseSearch] = useState('');
   const [templateSearch, setTemplateSearch] = useState('');
   const [templateName, setTemplateName] = useState('');
   const [selectedExercises, setSelectedExercises] = useState<DraftExercise[]>([]);
@@ -69,7 +68,7 @@ export const QuickLog: React.FC = () => {
     setSelectedTemplateId(null);
   };
 
-  const addExerciseFromLibrary = (exercise: ExerciseLibraryItem) => {
+  const addExerciseFromLibrary = (exercise: any) => {
     setSelectedTemplateId(null);
     setWorkoutType(exercise.categoryName || workoutType);
     setSelectedExercises((cur) => [
@@ -80,10 +79,10 @@ export const QuickLog: React.FC = () => {
         exerciseName: exercise.name,
         categoryId: exercise.categoryId || undefined,
         categoryName: exercise.categoryName || undefined,
-        muscleGroup: exercise.muscleGroup,
+        muscleGroup: exercise.muscleGroup || (exercise.tags && exercise.tags[0]) || 'General',
         duration: exercise.defaultDuration || 10,
         sets:
-          exercise.exerciseType === 'cardio'
+          exercise.exerciseType === 'cardio' || exercise.trackingType === 'duration_distance'
             ? [{ reps: 1, weight: 0 }]
             : [
                 { reps: 10, weight: 0 },
@@ -345,16 +344,11 @@ export const QuickLog: React.FC = () => {
         <form onSubmit={handleQuickSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left panel */}
           <div className="lg:col-span-4 space-y-5">
-            <ExerciseLibraryPanel
+            <ActivitySearchPanel
               categories={categories}
-              library={library}
-              loading={loadingOptions}
               workoutType={workoutType}
-              exerciseSearch={exerciseSearch}
               onWorkoutTypeChange={handleWorkoutTypeChange}
-              onSearchChange={setExerciseSearch}
               onAddExercise={addExerciseFromLibrary}
-              onAddBlank={addBlankExercise}
             />
             <TemplatePicker
               templates={templates}
