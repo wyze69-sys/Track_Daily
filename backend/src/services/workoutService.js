@@ -1,7 +1,7 @@
 const pool = require("../config/db");
 const { workoutRepository } = require("../repositories/workoutRepository");
 const { gamificationService } = require("./gamificationService");
-const { calculateCalories, calculateXP, getCategorySlug } = require("../utils/calculators");
+const { calculateCalories, calculateXP, calculateWorkoutXp, getCategorySlug } = require("../utils/calculators");
 const { createId } = require("../utils/ids");
 
 /**
@@ -77,11 +77,18 @@ const workoutService = {
       throw httpError("Duration must be greater than zero.", 400);
     }
 
-    const [[userRow]] = await pool.execute("SELECT weight, weight_kg FROM users WHERE id = ?", [userId]);
+    const [[userRow]] = await pool.execute(
+      `SELECT u.weight, u.weight_kg, COALESCE(ug.current_streak, us.current_streak, 0) AS current_streak
+       FROM users u
+       LEFT JOIN user_gamification ug ON ug.user_id = u.id
+       LEFT JOIN user_streaks us ON us.user_id = u.id
+       WHERE u.id = ?`,
+      [userId]
+    );
     const weightKg = Number(userRow?.weight_kg || userRow?.weight || 70);
     const calculationPayload = { ...workoutData, category: categoryMeta.slug, duration_min: durationTotal };
     const calories = calculateCalories(calculationPayload, weightKg, { categoryMeta });
-    const xp = calculateXP(calculationPayload, { categoryMeta });
+    const { xpEarned: xp, xpBreakdown } = calculateWorkoutXp(calculationPayload, { categoryMeta, streak: userRow?.current_streak || 0 });
     const workoutTitle = title || categoryMeta.name;
     const exercises = normalizeExercises(
       sourceExercises.length > 0
@@ -101,6 +108,7 @@ const workoutService = {
       caloriesBurned: calories,
       calories,
       xp,
+      xpBreakdown,
       intensity: workoutData.intensity || "med",
       userWeightAtLog: weightKg,
       mood: workoutData.mood || workoutData.moodAfterWorkout || null,

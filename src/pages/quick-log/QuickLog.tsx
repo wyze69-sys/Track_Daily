@@ -63,10 +63,85 @@ export const QuickLog: React.FC = () => {
   );
 
   const calculateXpPreview = () => {
-    let xp = Math.max(30, Math.round(durationMinutes * 1.8));
-    if (totalSets >= 6) xp += 15;
-    if (note.trim()) xp += 8;
-    return xp;
+    const minutes = Math.max(0, Number(durationMinutes) || 0);
+    const baseCompletionXp = 20;
+    const durationXp = minutes > 0 ? Math.min(minutes * 1.2, 90) : 0;
+
+    // Fallback MET estimation based on workoutType
+    const category = String(workoutType || '').toLowerCase().trim();
+    let defaultMet = 5.0; // fallback
+    if (category.includes('cardio') || category.includes('run') || category.includes('cycle') || category.includes('walk') || category.includes('swim')) {
+      defaultMet = 7.0;
+    } else if (category.includes('strength') || category.includes('weight') || category.includes('chest') || category.includes('back') || category.includes('leg') || category.includes('core')) {
+      defaultMet = 5.0;
+    } else if (category.includes('hiit') || category.includes('interval') || category.includes('circuit')) {
+      defaultMet = 7.5;
+    } else if (category.includes('yoga') || category.includes('flexibility')) {
+      defaultMet = 3.0;
+    } else if (category.includes('mobility') || category.includes('stretch')) {
+      defaultMet = 2.5;
+    } else if (category.includes('sport')) {
+      defaultMet = 6.0;
+    }
+
+    // If we have selected exercises, try to find defaultMet of first one from library
+    if (selectedExercises.length > 0) {
+      const firstEx = selectedExercises[0];
+      const match = library.find(item => item.id === firstEx.libraryId || item.name.toLowerCase().trim() === firstEx.exerciseName.toLowerCase().trim());
+      const itemMet = (match as any)?.defaultMet || (match as any)?.baseMet || (match as any)?.base_met;
+      if (typeof itemMet === 'number' && itemMet > 0) {
+        defaultMet = itemMet;
+      }
+    }
+
+    const intensityXp = minutes > 0 ? Math.min(defaultMet * minutes * 0.15, 60) : 0;
+
+    // Performance bonus estimation
+    let cardioBonus = 0;
+    let strengthBonus = 0;
+    let bodyweightBonus = 0;
+
+    let distanceKm = 0;
+    let totalVolumeKg = 0;
+    let totalBodyweightRepsFactor = 0;
+
+    for (const ex of selectedExercises) {
+      const trackingType = ex.trackingType || 'sets_reps_weight';
+      const isCardio = trackingType === 'duration_distance';
+      if (isCardio) {
+        distanceKm += Number(ex.distance || 0);
+      } else {
+        const match = library.find(item => item.id === ex.libraryId);
+        const bodyweightFactor = (match as any)?.bodyweightFactor || ex.bodyweightFactor;
+        const sets = Array.isArray(ex.sets) ? ex.sets : [];
+        if (bodyweightFactor !== undefined && bodyweightFactor > 0) {
+          const reps = sets.reduce((sum, set) => sum + (Number(set.reps) || 0), 0);
+          totalBodyweightRepsFactor += reps * bodyweightFactor;
+        } else {
+          for (const set of sets) {
+            const reps = Number(set.reps) || 0;
+            const weight = Number(set.weight) || 0;
+            totalVolumeKg += reps * weight;
+          }
+        }
+      }
+    }
+
+    if (distanceKm > 0) {
+      cardioBonus = Math.min(distanceKm * 4, 40);
+    }
+    if (totalVolumeKg > 0) {
+      strengthBonus = Math.min(totalVolumeKg / 500, 40);
+    }
+    if (totalBodyweightRepsFactor > 0) {
+      bodyweightBonus = Math.min(totalBodyweightRepsFactor * 0.25, 40);
+    }
+
+    const performanceBonus = Math.max(cardioBonus, strengthBonus, bodyweightBonus, 0);
+    const streakBonus = 0;
+
+    const finalXp = Math.round(baseCompletionXp + durationXp + intensityXp + performanceBonus + streakBonus);
+    return Math.max(0, finalXp);
   };
 
   // ── Exercise mutations ──────────────────────────────────────────

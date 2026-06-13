@@ -33,11 +33,20 @@ export interface Workout {
   note: string;
   templateId: string | null;
   xpEarned: number;
-  // Real backend calories burned estimation, no client-side calculation to prevent fake calories
   caloriesBurned?: number;
   calorieEstimateSource?: string;
   createdAt: string;
   exercises?: WorkoutExercise[];
+  xpBreakdown?: {
+    baseCompletionXp: number;
+    durationXp: number;
+    intensityXp: number;
+    performanceBonus: number;
+    streakBonus: number;
+    weeklyGoalBonus?: number;
+    finalXp: number;
+    method: string;
+  };
 }
 
 type WorkoutWriteBody = {

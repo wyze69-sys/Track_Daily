@@ -349,6 +349,171 @@ export function withEstimatedCalories(workout: Workout, profile?: UserProfile): 
   } as Workout;
 }
 
+export interface XpBreakdown {
+  baseCompletionXp: number;
+  durationXp: number;
+  intensityXp: number;
+  performanceBonus: number;
+  streakBonus: number;
+  weeklyGoalBonus?: number;
+  finalXp: number;
+  method: string;
+}
+
+export interface XpCalculationResult {
+  xpEarned: number;
+  xpBreakdown: XpBreakdown;
+}
+
+export function calculateWorkoutXp(
+  workout: { workoutType?: string; durationMinutes?: number; exercises?: any[]; distance?: number; distanceKm?: number },
+  profile?: UserProfile
+): XpCalculationResult {
+  const db = readDatabase();
+  const activities = db.activityLibrary || [];
+
+  const minutes = Math.max(0, Number(workout.durationMinutes ?? 0));
+
+  // 1. Resolve defaultMet fallback based on workout type/category
+  const category = String(workout.workoutType || '').toLowerCase().trim();
+  let defaultMet = 5.0; // fallback
+  if (category.includes('cardio') || category.includes('run') || category.includes('cycle') || category.includes('walk') || category.includes('swim')) {
+    defaultMet = 7.0;
+  } else if (category.includes('strength') || category.includes('weight') || category.includes('chest') || category.includes('back') || category.includes('leg') || category.includes('core')) {
+    defaultMet = 5.0;
+  } else if (category.includes('hiit') || category.includes('interval') || category.includes('circuit')) {
+    defaultMet = 7.5;
+  } else if (category.includes('yoga') || category.includes('flexibility')) {
+    defaultMet = 3.0;
+  } else if (category.includes('mobility') || category.includes('stretch')) {
+    defaultMet = 2.5;
+  } else if (category.includes('sport')) {
+    defaultMet = 6.0;
+  }
+
+  const exercises = Array.isArray(workout.exercises) ? workout.exercises : [];
+  let foundMet = undefined;
+  for (const ex of exercises) {
+    const exName = String(ex.exerciseName || ex.name || '').toLowerCase().trim();
+    const exLibId = ex.libraryId;
+    let act = activities.find(a => (exLibId && a.id === exLibId) || (exName && (a.name.toLowerCase().trim() === exName || a.normalizedName === exName)));
+    if (act && typeof act.defaultMet === 'number') {
+      foundMet = act.defaultMet;
+      break;
+    }
+  }
+  if (foundMet !== undefined) {
+    defaultMet = foundMet;
+  }
+
+  // 2. Base Completion XP
+  const baseCompletionXp = 20;
+
+  // 3. Duration XP
+  const durationXp = minutes > 0 ? Math.min(minutes * 1.2, 90) : 0;
+
+  // 4. Intensity XP
+  const intensityXp = minutes > 0 ? Math.min(defaultMet * minutes * 0.15, 60) : 0;
+
+  // 5. Performance Bonus
+  let cardioBonus = 0;
+  let strengthBonus = 0;
+  let bodyweightBonus = 0;
+
+  let distanceKm = Number(workout.distance ?? workout.distanceKm ?? 0) || 0;
+  let totalVolumeKg = 0;
+  let totalBodyweightRepsFactor = 0;
+
+  for (const ex of exercises) {
+    const exName = String(ex.exerciseName || ex.name || '').toLowerCase().trim();
+    const exLibId = ex.libraryId;
+    let act = activities.find(a => (exLibId && a.id === exLibId) || (exName && (a.name.toLowerCase().trim() === exName || a.normalizedName === exName)));
+
+    const trackingType = String(act?.trackingType || ex.trackingType || '').toLowerCase().trim();
+    const currentCategory = String(act?.categoryName || ex.categoryName || workout.workoutType || '').toLowerCase().trim();
+
+    const isCardio = currentCategory.includes('cardio') || trackingType === 'duration_distance' || currentCategory.includes('run') || currentCategory.includes('cycle') || currentCategory.includes('walk') || currentCategory.includes('swim');
+    const isStrength = currentCategory.includes('strength') || trackingType === 'sets_reps_weight' || currentCategory.includes('chest') || currentCategory.includes('back') || currentCategory.includes('leg') || currentCategory.includes('core');
+
+    if (isCardio) {
+      distanceKm += Number(ex.distance ?? ex.distanceKm ?? 0) || 0;
+    } else if (isStrength) {
+      const bodyweightFactor = act?.bodyweightFactor !== undefined ? act.bodyweightFactor : ex.bodyweightFactor;
+      const sets = Array.isArray(ex.sets) ? ex.sets : [];
+      if (bodyweightFactor !== undefined && bodyweightFactor > 0) {
+        const reps = sets.reduce((sum: number, set: any) => sum + (Number(set.reps) || 0), 0);
+        totalBodyweightRepsFactor += reps * bodyweightFactor;
+      } else {
+        for (const set of sets) {
+          const reps = Number(set.reps) || 0;
+          const weight = Number(set.weight) || 0;
+          totalVolumeKg += reps * weight;
+        }
+      }
+    }
+  }
+
+  if (distanceKm > 0) {
+    cardioBonus = Math.min(distanceKm * 4, 40);
+  }
+  if (totalVolumeKg > 0) {
+    strengthBonus = Math.min(totalVolumeKg / 500, 40);
+  }
+  if (totalBodyweightRepsFactor > 0) {
+    bodyweightBonus = Math.min(totalBodyweightRepsFactor * 0.25, 40);
+  }
+
+  const performanceBonus = Math.max(cardioBonus, strengthBonus, bodyweightBonus, 0);
+
+  // 6. Streak Bonus
+  const streak = profile ? Number(profile.currentStreak ?? 0) : 0;
+  let streakBonus = 0;
+  if (streak >= 7) {
+    streakBonus = 25;
+  } else if (streak >= 4) {
+    streakBonus = 15;
+  } else if (streak >= 2) {
+    streakBonus = 10;
+  }
+
+  const finalXp = Math.round(baseCompletionXp + durationXp + intensityXp + performanceBonus + streakBonus);
+
+  return {
+    xpEarned: Math.max(0, finalXp),
+    xpBreakdown: {
+      baseCompletionXp,
+      durationXp: Math.round(durationXp * 100) / 100,
+      intensityXp: Math.round(intensityXp * 100) / 100,
+      performanceBonus: Math.round(performanceBonus * 100) / 100,
+      streakBonus,
+      finalXp: Math.max(0, finalXp),
+      method: "formula-v2"
+    }
+  };
+}
+
+export function updateUserProfileXp(profile: UserProfile, xpEarned: number) {
+  if (profile.totalXp === undefined) {
+    profile.totalXp = profile.xp || 0;
+  }
+  profile.totalXp += xpEarned;
+  profile.xp = profile.totalXp; // Legacy alignment
+
+  let level = 1;
+  let cumulativeXpNeeded = 0;
+  while (true) {
+    const nextLevelXp = 100 + (level * 75) + (level * level * 15);
+    if (profile.totalXp >= cumulativeXpNeeded + nextLevelXp) {
+      cumulativeXpNeeded += nextLevelXp;
+      level += 1;
+    } else {
+      break;
+    }
+  }
+  profile.level = level;
+  profile.currentLevelXp = profile.totalXp - cumulativeXpNeeded;
+}
+
 export function processWorkoutLogging(
   userId: string,
   workoutType: string,
@@ -360,12 +525,7 @@ export function processWorkoutLogging(
 ) {
   const db = readDatabase();
 
-  // 1. Calculate XP Earned
-  let xpEarned = 50;
-  if (duration > 30) xpEarned += 20;
-  if (mood || note) xpEarned += 10;
-
-  // 2. Ensure a real user profile exists before estimated calorie calculation
+  // 1. Ensure a real user profile exists
   let profile = db.userProfiles.find((p) => p.userId === userId);
   if (!profile) {
     profile = {
@@ -382,11 +542,34 @@ export function processWorkoutLogging(
     db.userProfiles.push(profile);
   }
 
+  // Calculate streak *prior* to or *including* this workout
+  const now = new Date();
+  const currentDateStr = now.toISOString().split('T')[0];
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  const yesterdayDateStr = yesterday.toISOString().split('T')[0];
+
+  let nextStreak = profile.currentStreak;
+  if (!profile.lastWorkoutDate) {
+    nextStreak = 1;
+  } else if (profile.lastWorkoutDate === currentDateStr) {
+    // already logged today
+  } else if (profile.lastWorkoutDate === yesterdayDateStr) {
+    nextStreak = profile.currentStreak + 1;
+  } else {
+    nextStreak = 1;
+  }
+
+  const profileWithNextStreak = { ...profile, currentStreak: nextStreak };
+
   const calorieSourceWorkout = {
     workoutType,
     durationMinutes: duration,
     exercises: exercises || []
   };
+
+  // 2. Calculate XP Earned using the new system
+  const { xpEarned, xpBreakdown } = calculateWorkoutXp(calorieSourceWorkout, profileWithNextStreak);
 
   // 3. Log workout entry
   const est = estimateWorkoutCalories(calorieSourceWorkout as Workout, profile);
@@ -399,6 +582,7 @@ export function processWorkoutLogging(
     note: note || '',
     templateId,
     xpEarned,
+    xpBreakdown,
     caloriesBurned: est.caloriesBurned,
     calorieEstimateSource: est.calorieEstimateSource,
     createdAt: new Date().toISOString(),
@@ -407,9 +591,7 @@ export function processWorkoutLogging(
   db.workouts.push(newWorkout);
 
   // 4. Update user profile with leveling logic
-  profile.xp += xpEarned;
-  const calculatedLevel = Math.floor(profile.xp / 100) + 1;
-  if (calculatedLevel > profile.level) profile.level = calculatedLevel;
+  updateUserProfileXp(profile, xpEarned);
 
   // 5. Update weekly plan count
   const currentWeekMonday = calculateCurrentWeekStartDate();
@@ -429,31 +611,18 @@ export function processWorkoutLogging(
   weeklyPlan.currentCount += 1;
 
   if (weeklyPlan.currentCount === weeklyPlan.targetCount) {
-    xpEarned += 50;
-    profile.xp += 50;
-    const levelCheck = Math.floor(profile.xp / 100) + 1;
-    if (levelCheck > profile.level) profile.level = levelCheck;
-    newWorkout.xpEarned += 50;
+    const bonusXp = 50;
+    updateUserProfileXp(profile, bonusXp);
+    newWorkout.xpEarned += bonusXp;
+    if (newWorkout.xpBreakdown) {
+      newWorkout.xpBreakdown.weeklyGoalBonus = bonusXp;
+      newWorkout.xpBreakdown.finalXp += bonusXp;
+    }
   }
 
   // 6. Streak calculation
-  const now = new Date();
-  const currentDateStr = now.toISOString().split('T')[0];
-  const yesterday = new Date();
-  yesterday.setDate(now.getDate() - 1);
-  const yesterdayDateStr = yesterday.toISOString().split('T')[0];
-
-  if (!profile.lastWorkoutDate) {
-    profile.currentStreak = 1;
-    profile.maxStreak = Math.max(1, profile.maxStreak);
-  } else if (profile.lastWorkoutDate === currentDateStr) {
-    // already logged today
-  } else if (profile.lastWorkoutDate === yesterdayDateStr) {
-    profile.currentStreak += 1;
-    profile.maxStreak = Math.max(profile.currentStreak, profile.maxStreak);
-  } else {
-    profile.currentStreak = 1;
-  }
+  profile.currentStreak = nextStreak;
+  profile.maxStreak = Math.max(nextStreak, profile.maxStreak);
   profile.lastWorkoutDate = currentDateStr;
 
   // 7. Badge unlocking
@@ -484,13 +653,11 @@ export function processWorkoutLogging(
       uc.progress += 1;
       if (uc.progress >= parentChg.targetWorkouts) {
         uc.status = 'completed';
-        profile!.xp += parentChg.xpReward;
-        const finalLevelCheck = Math.floor(profile!.xp / 100) + 1;
-        if (finalLevelCheck > profile!.level) profile!.level = finalLevelCheck;
+        updateUserProfileXp(profile!, parentChg.xpReward);
       }
     }
   });
 
   writeDatabase(db);
-  return { workout: newWorkout, profile, xpEarned };
+  return { workout: newWorkout, profile, xpEarned: newWorkout.xpEarned };
 }

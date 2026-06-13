@@ -1,17 +1,8 @@
-const bcryptjs = require("bcryptjs");
 const mysql = require("mysql2/promise");
 const pool = require("../config/db");
 
-function toMysqlDate(date) {
-  return date.toISOString().slice(0, 10);
-}
-
-function toMysqlDateTime(date) {
-  return date.toISOString().slice(0, 19).replace("T", " ");
-}
-
 async function ensureDatabaseExists() {
-  const database = process.env.DB_NAME || "fitsync_db";
+  const database = process.env.DB_NAME || "logweb";
   const safeDatabase = database.replace(/`/g, "");
 
   const connection = await mysql.createConnection({
@@ -479,6 +470,7 @@ async function applySchemaUpgrades() {
   );
   await ensureColumn("workouts", "mood", "mood VARCHAR(50) NULL");
   await ensureColumn("workouts", "template_id", "template_id VARCHAR(50) NULL");
+  await ensureColumn("workouts", "xp_breakdown", "xp_breakdown JSON NULL");
 }
 
 async function seedCategories() {
@@ -549,15 +541,15 @@ async function seedExerciseLibrary() {
 async function seedLevels() {
   const levels = [
     ["lvl_1", 1, 0, "level_1", "Starter"],
-    ["lvl_2", 2, 150, "level_2", "Warm Up"],
-    ["lvl_3", 3, 350, "level_3", "Builder"],
-    ["lvl_4", 4, 600, "level_4", "Regular"],
-    ["lvl_5", 5, 900, "level_5", "Momentum"],
-    ["lvl_6", 6, 1250, "level_6", "Athlete"],
-    ["lvl_7", 7, 1650, "level_7", "Specialist"],
-    ["lvl_8", 8, 2100, "level_8", "Pro"],
-    ["lvl_9", 9, 2600, "level_9", "Elite"],
-    ["lvl_10", 10, 3150, "level_10", "Legend"]
+    ["lvl_2", 2, 190, "level_2", "Warm Up"],
+    ["lvl_3", 3, 500, "level_3", "Builder"],
+    ["lvl_4", 4, 960, "level_4", "Regular"],
+    ["lvl_5", 5, 1600, "level_5", "Momentum"],
+    ["lvl_6", 6, 2450, "level_6", "Athlete"],
+    ["lvl_7", 7, 3540, "level_7", "Specialist"],
+    ["lvl_8", 8, 4900, "level_8", "Pro"],
+    ["lvl_9", 9, 6560, "level_9", "Elite"],
+    ["lvl_10", 10, 8550, "level_10", "Legend"]
   ];
 
   for (const level of levels) {
@@ -597,278 +589,19 @@ async function seedAchievements() {
   }
 }
 
-async function seedUsers() {
-  const adminPasswordHash = bcryptjs.hashSync("admin123", 10);
-  const userPasswordHash = bcryptjs.hashSync("fitness123", 10);
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-  await pool.execute(
-    `INSERT IGNORE INTO users (id, email, name, role, password_hash)
-     VALUES (?, ?, ?, ?, ?)`,
-    ["usr_admin", "admin@fitsync.com", "Alex Roberts (Admin)", "admin", adminPasswordHash]
-  );
-
-  await pool.execute(
-    `INSERT IGNORE INTO users (
-       id, email, name, role, password_hash, age, gender, height, weight, weight_kg, target_weight,
-       preferred_workout_type, goal, activity_level, created_at
-     )
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      "usr_demo",
-      "user@fitsync.com",
-      "Sarah Coleman",
-      "user",
-      userPasswordHash,
-      28,
-      "female",
-      168.0,
-      65.0,
-      65.0,
-      62.0,
-      "Strength",
-      "Lose weight & Tone muscle",
-      "Moderately active",
-      toMysqlDateTime(thirtyDaysAgo)
-    ]
-  );
-
+async function seedUserGamificationRows() {
   await pool.execute(
     `INSERT IGNORE INTO user_gamification (user_id, total_xp, level, next_level_xp)
-     SELECT id, 0, 1, 150 FROM users`
-  );
-}
-
-async function seedWeightLogs(today) {
-  const weightTrend = [
-    { offsetDays: 14, weight: 66.8, notes: "Starting weight for tracker" },
-    { offsetDays: 10, weight: 66.2, notes: "Weight tracking milestone" },
-    { offsetDays: 7, weight: 65.7, notes: "Weight tracking milestone" },
-    { offsetDays: 3, weight: 65.3, notes: "Weight tracking milestone" },
-    { offsetDays: 0, weight: 65.0, notes: "Weight tracking milestone" }
-  ];
-
-  for (let i = 0; i < weightTrend.length; i += 1) {
-    const record = weightTrend[i];
-    const recordDate = new Date(today);
-    recordDate.setDate(today.getDate() - record.offsetDays);
-    const bmi = Number((record.weight / (1.68 * 1.68)).toFixed(1));
-
-    await pool.execute(
-      `INSERT IGNORE INTO weight_logs (id, user_id, date, weight, bmi, notes, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        `w_demo_${i}`,
-        "usr_demo",
-        toMysqlDate(recordDate),
-        record.weight,
-        bmi,
-        record.notes,
-        toMysqlDateTime(recordDate)
-      ]
-    );
-  }
-}
-
-async function seedWorkouts(today) {
-  const sampleWorkouts = [
-    {
-      id: "wk_demo_0",
-      title: "Monday Energizing Jog",
-      offsetDays: 12,
-      notes: "Outdoor track, felt very fresh",
-      exercises: [
-        {
-          id: "ex_seed_1",
-          categoryId: "cat_cardio",
-          categoryName: "Cardio",
-          exerciseName: "Jogging / Running",
-          duration: 35,
-          caloriesBurned: 320,
-          sets: [{ reps: 1, weight: 0.0 }]
-        }
-      ]
-    },
-    {
-      id: "wk_demo_1",
-      title: "Upper-Body Strength Progress",
-      offsetDays: 10,
-      notes: "Focusing on form and hypertrophy",
-      exercises: [
-        {
-          id: "ex_seed_2",
-          categoryId: "cat_strength",
-          categoryName: "Strength",
-          exerciseName: "Shoulder press & Rows",
-          duration: 40,
-          caloriesBurned: 240,
-          sets: [
-            { reps: 10, weight: 15.0 },
-            { reps: 10, weight: 15.0 },
-            { reps: 8, weight: 17.5 }
-          ]
-        }
-      ]
-    },
-    {
-      id: "wk_demo_2",
-      title: "Active Recovery & Stretching",
-      offsetDays: 8,
-      notes: "Gentle flow to address hamstring soreness",
-      exercises: [
-        {
-          id: "ex_seed_3",
-          categoryId: "cat_yoga",
-          categoryName: "Yoga",
-          exerciseName: "Flow Stretch session",
-          duration: 25,
-          caloriesBurned: 80,
-          sets: [{ reps: 1, weight: 0.0 }]
-        }
-      ]
-    },
-    {
-      id: "wk_demo_3",
-      title: "Full Body Circuit Blast",
-      offsetDays: 5,
-      notes: "Strong calorie burn. Peak heart rate 174",
-      exercises: [
-        {
-          id: "ex_seed_4",
-          categoryId: "cat_hiit",
-          categoryName: "HIIT",
-          exerciseName: "High rep calisthenics circuit",
-          duration: 30,
-          caloriesBurned: 290,
-          sets: [
-            { reps: 15, weight: 0.0 },
-            { reps: 15, weight: 0.0 },
-            { reps: 15, weight: 0.0 }
-          ]
-        }
-      ]
-    },
-    {
-      id: "wk_demo_4",
-      title: "Tempo Running Session",
-      offsetDays: 2,
-      notes: "Pace: 5:45/km. Felt slightly tough towards the 4th km.",
-      exercises: [
-        {
-          id: "ex_seed_5",
-          categoryId: "cat_cardio",
-          categoryName: "Cardio",
-          exerciseName: "Outdoor Road Run",
-          duration: 42,
-          caloriesBurned: 410,
-          sets: [{ reps: 1, weight: 0.0 }]
-        }
-      ]
-    }
-  ];
-
-  for (const workout of sampleWorkouts) {
-    const workoutDate = new Date(today);
-    workoutDate.setDate(today.getDate() - workout.offsetDays);
-    const totalDuration = workout.exercises.reduce((sum, exercise) => sum + exercise.duration, 0);
-    const totalCalories = workout.exercises.reduce(
-      (sum, exercise) => sum + exercise.caloriesBurned,
-      0
-    );
-
-    await pool.execute(
-      `INSERT IGNORE INTO workouts (id, user_id, date, title, duration_total, calories_total, notes, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        workout.id,
-        "usr_demo",
-        toMysqlDate(workoutDate),
-        workout.title,
-        totalDuration,
-        totalCalories,
-        workout.notes,
-        toMysqlDateTime(workoutDate)
-      ]
-    );
-
-    for (const exercise of workout.exercises) {
-      await pool.execute(
-        `INSERT IGNORE INTO workout_exercises (
-           id, workout_id, category_id, category_name, exercise_name, duration, calories_burned
-         )
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          exercise.id,
-          workout.id,
-          exercise.categoryId,
-          exercise.categoryName,
-          exercise.exerciseName,
-          exercise.duration,
-          exercise.caloriesBurned
-        ]
-      );
-
-      for (const set of exercise.sets) {
-        const [existingRows] = await pool.execute(
-          "SELECT id FROM workout_sets WHERE exercise_id = ? AND reps = ? AND weight = ? LIMIT 1",
-          [exercise.id, set.reps, set.weight]
-        );
-
-        if (existingRows.length === 0) {
-          await pool.execute(
-            "INSERT INTO workout_sets (exercise_id, reps, weight) VALUES (?, ?, ?)",
-            [exercise.id, set.reps, set.weight]
-          );
-        }
-      }
-    }
-  }
-}
-
-async function seedInsight(today) {
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 7);
-  const recommendations = [
-    "Incorporate one additional low-intensity cardio session to build a stronger stamina base.",
-    "Sustain hydration habits by aiming for around 2.4 liters of water daily.",
-    "Next strength workout, try increasing row reps by 2 to support muscular tone progression."
-  ];
-
-  await pool.execute(
-    `INSERT IGNORE INTO ai_insights (
-       id, user_id, date_generated, start_date, end_date, workout_count, total_calories,
-       total_minutes, bmi_value, current_weight, summary, recommendations, goal_progress
-     )
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      "ins_demo_1",
-      "usr_demo",
-      toMysqlDate(today),
-      toMysqlDate(startDate),
-      toMysqlDate(today),
-      3,
-      780,
-      97,
-      23.0,
-      65.3,
-      "You kept good routine consistency this past week with 3 logged sessions. Your weight records showed healthy downward progress and your training split favored efficient circuits.",
-      JSON.stringify(recommendations),
-      "On track toward your target. Body weight is trending down at a safe pace with good routine compliance."
-    ]
+     SELECT id, COALESCE(total_xp, 0), 1, 190 FROM users`
   );
 }
 
 async function seedDefaults() {
-  const today = new Date();
-
   await seedCategories();
   await seedExerciseLibrary();
   await seedLevels();
   await seedAchievements();
-  await seedUsers();
-  await seedWeightLogs(today);
-  await seedWorkouts(today);
-  await seedInsight(today);
+  await seedUserGamificationRows();
 }
 
 async function initializeDatabase() {

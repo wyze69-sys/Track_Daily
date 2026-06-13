@@ -121,6 +121,7 @@ const {
   calculateCalories,
   calculateMet,
   calculateXP,
+  calculateWorkoutXp,
   getCategorySlug,
   getDistanceKm,
   getDurationMinutes,
@@ -816,6 +817,8 @@ async function buildSummary(userId) {
     totalXp,
     total_xp: totalXp,
     level: level.levelNumber,
+    currentLevelXp: totalXp - level.xpRequired,
+    current_level_xp: totalXp - level.xpRequired,
     title: level.title,
     nextLevelXp: nextLevel?.xpRequired || totalXp,
     next_level_xp: nextLevel?.xpRequired || totalXp,
@@ -850,7 +853,14 @@ async function recordAutoWorkout(userId, payload) {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    const [userRows] = await connection.execute("SELECT weight, weight_kg FROM users WHERE id = ? LIMIT 1", [userId]);
+    const [userRows] = await connection.execute(
+      `SELECT u.weight, u.weight_kg, COALESCE(ug.current_streak, us.current_streak, 0) AS current_streak
+       FROM users u
+       LEFT JOIN user_gamification ug ON ug.user_id = u.id
+       LEFT JOIN user_streaks us ON us.user_id = u.id
+       WHERE u.id = ? LIMIT 1`,
+      [userId]
+    );
     if (!userRows[0]) throw httpError("User not found.", 404);
 
     const weightKg = Number(userRows[0].weight_kg || userRows[0].weight || 70);
@@ -858,7 +868,7 @@ async function recordAutoWorkout(userId, payload) {
     const profile = resolveCategoryProfile(categoryMeta.slug, categoryMeta);
     const met = calculateMet(categoryMeta.slug, getDistanceKm(payload), durationMin, profile.baseMet);
     const calories = calculateCalories(workout, weightKg, { categoryMeta, met });
-    const xp = calculateXP(workout, { categoryMeta, met });
+    const { xpEarned: xp, xpBreakdown } = calculateWorkoutXp(workout, { categoryMeta, met, streak: userRows[0].current_streak || 0 });
     const date = payload.date || toDateStr(new Date());
     const workoutId = createId("wk");
     const title = payload.title || categoryMeta.name;
@@ -866,8 +876,8 @@ async function recordAutoWorkout(userId, payload) {
     await connection.execute(
       `INSERT INTO workouts (
          id, user_id, date, title, duration_total, calories_total, calories_burned,
-         calories, xp, intensity, calories_source, user_weight_at_log, notes
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'auto', ?, ?)`,
+         calories, xp, intensity, calories_source, user_weight_at_log, notes, xp_breakdown
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'auto', ?, ?, ?)`,
       [
         workoutId,
         userId,
@@ -880,7 +890,8 @@ async function recordAutoWorkout(userId, payload) {
         xp,
         payload.intensity || "med",
         weightKg,
-        payload.notes || null
+        payload.notes || null,
+        JSON.stringify(xpBreakdown)
       ]
     );
 
@@ -901,7 +912,7 @@ async function recordAutoWorkout(userId, payload) {
         workoutId,
         xp,
         `${categoryMeta.name} workout`,
-        JSON.stringify({ category: categoryMeta.slug, duration_min: durationMin, calories, met })
+        JSON.stringify(xpBreakdown)
       ]
     );
 

@@ -31,6 +31,8 @@ export interface UserProfile {
   heightCm?: number | null;
   dietPreference?: string | null;
   allergies?: string[] | null;
+  totalXp?: number;
+  currentLevelXp?: number;
 }
 
 export interface ActivityLibraryItem {
@@ -75,6 +77,16 @@ export interface Workout {
   calorieEstimateSource?: string;
   createdAt: string;
   exercises?: any[];
+  xpBreakdown?: {
+    baseCompletionXp: number;
+    durationXp: number;
+    intensityXp: number;
+    performanceBonus: number;
+    streakBonus: number;
+    weeklyGoalBonus?: number;
+    finalXp: number;
+    method: string;
+  };
 }
 
 export interface UserAchievement {

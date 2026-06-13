@@ -70,6 +70,7 @@ async function hydrateWorkouts(workoutRows, executor = pool) {
     calories: row.calories === null || row.calories === undefined ? Number(row.calories_total) : Number(row.calories),
     xp: Number(row.xp || 0),
     xpEarned: Number(row.xp || 0), // frontend alignment
+    xpBreakdown: typeof row.xp_breakdown === "string" ? JSON.parse(row.xp_breakdown) : (row.xp_breakdown || null),
     intensity: row.intensity || "med",
     caloriesSource: row.calories_source || "manual",
     userWeightAtLog: row.user_weight_at_log === null || row.user_weight_at_log === undefined ? undefined : Number(row.user_weight_at_log),
@@ -222,8 +223,8 @@ async function createWorkout(workout) {
     await connection.execute(
       `INSERT INTO workouts (
          id, user_id, date, title, duration_total, calories_total, calories_burned,
-         calories, xp, intensity, calories_source, user_weight_at_log, notes, mood, template_id
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         calories, xp, intensity, calories_source, user_weight_at_log, notes, mood, template_id, xp_breakdown
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         workout.userId,
@@ -239,7 +240,8 @@ async function createWorkout(workout) {
         workout.userWeightAtLog || null,
         workout.notes || null,
         workout.mood || null,
-        workout.templateId || null
+        workout.templateId || null,
+        workout.xpBreakdown ? JSON.stringify(workout.xpBreakdown) : null
       ]
     );
 

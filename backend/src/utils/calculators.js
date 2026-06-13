@@ -111,6 +111,133 @@ function calculateCalories(workout, weightKg = DEFAULT_WEIGHT_KG, options = {}) 
   return Math.round(met * Number(weightKg || DEFAULT_WEIGHT_KG) * (durationMin / 60));
 }
 
+let activityLibrary = [];
+try {
+  const fs = require('fs');
+  const path = require('path');
+  const seedPath = path.join(process.cwd(), 'database', 'seed', 'activity-library.json');
+  if (fs.existsSync(seedPath)) {
+    activityLibrary = JSON.parse(fs.readFileSync(seedPath, 'utf8'));
+  } else {
+    const altPath = path.join(process.cwd(), '..', 'database', 'seed', 'activity-library.json');
+    if (fs.existsSync(altPath)) {
+      activityLibrary = JSON.parse(fs.readFileSync(altPath, 'utf8'));
+    }
+  }
+} catch (e) {
+  // Ignore
+}
+
+function calculateWorkoutXp(workout, options = {}) {
+  const minutes = Math.max(0, Number(workout.duration_min ?? workout.durationMin ?? workout.duration ?? 0) || 0);
+  const slug = getCategorySlug(workout);
+  const profile = resolveCategoryProfile(slug, options.categoryMeta);
+
+  // 1. Get defaultMet fallback based on category
+  let defaultMet = profile.baseMet;
+  let activities = options.activities || activityLibrary || [];
+
+  const exercises = Array.isArray(workout.exercises) ? workout.exercises : [];
+  let foundMet = undefined;
+  for (const ex of exercises) {
+    const exName = String(ex.exerciseName || ex.name || "").toLowerCase().trim();
+    const exLibId = ex.libraryId;
+    let act = activities.find(a => (exLibId && a.id === exLibId) || (exName && (a.name.toLowerCase().trim() === exName || a.normalizedName === exName)));
+    if (act && typeof act.defaultMet === 'number') {
+      foundMet = act.defaultMet;
+      break;
+    }
+  }
+  if (foundMet !== undefined) {
+    defaultMet = foundMet;
+  }
+
+  // 2. Base Completion XP
+  const baseCompletionXp = 20;
+
+  // 3. Duration XP
+  const durationXp = minutes > 0 ? Math.min(minutes * 1.2, 90) : 0;
+
+  // 4. Intensity XP
+  const intensityXp = minutes > 0 ? Math.min(defaultMet * minutes * 0.15, 60) : 0;
+
+  // 5. Performance Bonus
+  let cardioBonus = 0;
+  let strengthBonus = 0;
+  let bodyweightBonus = 0;
+
+  let distanceKm = Number(workout.distance_km ?? workout.distanceKm ?? workout.distance ?? 0) || 0;
+  let totalVolumeKg = 0;
+  let totalBodyweightRepsFactor = 0;
+
+  for (const ex of exercises) {
+    const exName = String(ex.exerciseName || ex.name || "").toLowerCase().trim();
+    const exLibId = ex.libraryId;
+    let act = activities.find(a => (exLibId && a.id === exLibId) || (exName && (a.name.toLowerCase().trim() === exName || a.normalizedName === exName)));
+
+    const trackingType = String(act?.trackingType || ex.trackingType || "").toLowerCase().trim();
+    const currentCategory = String(act?.categoryName || ex.categoryName || workout.category || workout.categorySlug || "").toLowerCase().trim();
+
+    const isCardio = currentCategory.includes('cardio') || trackingType === 'duration_distance' || currentCategory.includes('run') || currentCategory.includes('cycle') || currentCategory.includes('walk') || currentCategory.includes('swim');
+    const isStrength = currentCategory.includes('strength') || trackingType === 'sets_reps_weight' || currentCategory.includes('chest') || currentCategory.includes('back') || currentCategory.includes('leg') || currentCategory.includes('core');
+
+    if (isCardio) {
+      distanceKm += Number(ex.distance ?? ex.distance_km ?? 0) || 0;
+    } else if (isStrength) {
+      const bodyweightFactor = act?.bodyweightFactor !== undefined ? act.bodyweightFactor : ex.bodyweightFactor;
+      const sets = Array.isArray(ex.sets) ? ex.sets : [];
+      if (bodyweightFactor !== undefined && bodyweightFactor > 0) {
+        const reps = sets.reduce((sum, set) => sum + (Number(set.reps) || 0), 0);
+        totalBodyweightRepsFactor += reps * bodyweightFactor;
+      } else {
+        for (const set of sets) {
+          const reps = Number(set.reps) || 0;
+          const weight = Number(set.weight) || 0;
+          totalVolumeKg += reps * weight;
+        }
+      }
+    }
+  }
+
+  if (distanceKm > 0) {
+    cardioBonus = Math.min(distanceKm * 4, 40);
+  }
+  if (totalVolumeKg > 0) {
+    strengthBonus = Math.min(totalVolumeKg / 500, 40);
+  }
+  if (totalBodyweightRepsFactor > 0) {
+    bodyweightBonus = Math.min(totalBodyweightRepsFactor * 0.25, 40);
+  }
+
+  const performanceBonus = Math.max(cardioBonus, strengthBonus, bodyweightBonus, 0);
+
+  // 6. Streak Bonus
+  const streak = options.streak !== undefined ? Number(options.streak) : 0;
+  let streakBonus = 0;
+  if (streak >= 7) {
+    streakBonus = 25;
+  } else if (streak >= 4) {
+    streakBonus = 15;
+  } else if (streak >= 2) {
+    streakBonus = 10;
+  }
+
+  const finalXp = Math.round(baseCompletionXp + durationXp + intensityXp + performanceBonus + streakBonus);
+
+  return {
+    xpEarned: Math.max(0, finalXp),
+    xpBreakdown: {
+      baseCompletionXp,
+      durationXp: Math.round(durationXp * 100) / 100,
+      intensityXp: Math.round(intensityXp * 100) / 100,
+      performanceBonus: Math.round(performanceBonus * 100) / 100,
+      streakBonus,
+      finalXp: Math.max(0, finalXp),
+      method: "formula-v2"
+    }
+  };
+}
+
 /**
  * Calculates workout XP server-side using duration, distance, and category effort.
  * @param {object} workout Workout payload.
@@ -118,18 +245,7 @@ function calculateCalories(workout, weightKg = DEFAULT_WEIGHT_KG, options = {}) 
  * @returns {number}
  */
 function calculateXP(workout, options = {}) {
-  const slug = getCategorySlug(workout);
-  const profile = resolveCategoryProfile(slug, options.categoryMeta);
-  const durationMin = getDurationMinutes(workout);
-  const distanceKm = getDistanceKm(workout);
-  const met = options.met || calculateMet(slug, distanceKm, durationMin, profile.baseMet);
-  const multiplier = Number(options.multiplier || 1);
-
-  if (distanceKm > 0) {
-    return Math.floor(distanceKm * met * DISTANCE_XP_FACTOR * multiplier);
-  }
-
-  return Math.floor(durationMin * met * profile.xpPerMetMin * multiplier);
+  return calculateWorkoutXp(workout, options).xpEarned;
 }
 
 module.exports = {
@@ -137,6 +253,7 @@ module.exports = {
   calculateCalories,
   calculateMet,
   calculateXP,
+  calculateWorkoutXp,
   getCategorySlug,
   getDistanceKm,
   getDurationMinutes,

@@ -75,8 +75,11 @@ async function formatLogResponse(userId, workout, xpEarned) {
     },
     profile: {
       totalXp: summary.totalXp,
+      total_xp: summary.totalXp,
       level: summary.level,
-      currentStreak: summary.currentStreak
+      currentStreak: summary.currentStreak,
+      currentLevelXp: summary.currentLevelXp,
+      current_level_xp: summary.currentLevelXp
     },
     xpEarned: xpEarned
   };
