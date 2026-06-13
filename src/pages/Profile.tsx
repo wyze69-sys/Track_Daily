@@ -25,7 +25,7 @@ export const Profile: React.FC = () => {
   const [targetWeight, setTargetWeight] = useState<number | ''>('');
   const [preferredWorkoutType, setPreferredWorkoutType] = useState('');
   const [goal, setGoal] = useState('');
-  const [activityLevel, setActivityLevel] = useState<'Sedentary' | 'Lightly active' | 'Moderately active' | 'Very active' | ''>('');
+  const [activityLevel, setActivityLevel] = useState<string>('');
   const [weeklyTarget, setWeeklyTarget] = useState<number>(3);
 
   // Load profile and weekly plan details on mount
@@ -398,14 +398,15 @@ export const Profile: React.FC = () => {
                       <select
                         id="activityLevel"
                         value={activityLevel}
-                        onChange={(e) => setActivityLevel(e.target.value as any)}
+                        onChange={(e) => setActivityLevel(e.target.value)}
                         className="block w-full px-4 py-3 bg-muted border border-border rounded-xl text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary font-medium"
                       >
                         <option value="" style={{ background: 'var(--popover)' }}>Select activity level</option>
-                        <option value="Sedentary" style={{ background: 'var(--popover)' }}>Sedentary</option>
-                        <option value="Lightly active" style={{ background: 'var(--popover)' }}>Lightly active</option>
-                        <option value="Moderately active" style={{ background: 'var(--popover)' }}>Moderately active</option>
-                        <option value="Very active" style={{ background: 'var(--popover)' }}>Very active</option>
+                        <option value="sedentary" style={{ background: 'var(--popover)' }}>Sedentary</option>
+                        <option value="light" style={{ background: 'var(--popover)' }}>Lightly active</option>
+                        <option value="moderate" style={{ background: 'var(--popover)' }}>Moderately active</option>
+                        <option value="active" style={{ background: 'var(--popover)' }}>Active</option>
+                        <option value="very_active" style={{ background: 'var(--popover)' }}>Very active</option>
                       </select>
                     </div>
 
@@ -432,14 +433,18 @@ export const Profile: React.FC = () => {
                       <label htmlFor="goal" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
                         Primary Fitness Goal
                       </label>
-                      <input
+                      <select
                         id="goal"
-                        type="text"
                         value={goal}
                         onChange={(e) => setGoal(e.target.value)}
-                        className="block w-full px-4 py-3 bg-muted border border-border rounded-xl text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-muted-foreground/40 font-medium"
-                        placeholder="Describe your training goal"
-                      />
+                        className="block w-full px-4 py-3 bg-muted border border-border rounded-xl text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary font-medium"
+                      >
+                        <option value="" style={{ background: 'var(--popover)' }}>Select goal</option>
+                        <option value="lose_weight" style={{ background: 'var(--popover)' }}>Lose weight</option>
+                        <option value="maintain_weight" style={{ background: 'var(--popover)' }}>Maintain weight</option>
+                        <option value="gain_muscle" style={{ background: 'var(--popover)' }}>Gain muscle</option>
+                        <option value="improve_fitness" style={{ background: 'var(--popover)' }}>Improve fitness</option>
+                      </select>
                     </div>
                   </div>
                 </div>

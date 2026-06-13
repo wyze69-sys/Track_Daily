@@ -5,7 +5,7 @@
  */
 
 const GENDERS = ["male", "female", "other"];
-const ACTIVITY_LEVELS = ["Sedentary", "Lightly active", "Moderately active", "Very active"];
+const ACTIVITY_LEVELS = ["sedentary", "light", "moderate", "active", "very_active", "Sedentary", "Lightly active", "Moderately active", "Very active"];
 
 const registerSchema = {
   name: { type: "string", required: true, minLength: 2, maxLength: 255 },

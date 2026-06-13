@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PageContainer } from '../../components/layout/PageContainer';
 import { useNutritionInsights } from './hooks/useNutritionInsights';
 import { NutritionProfileForm } from './components/NutritionProfileForm';
@@ -23,6 +23,23 @@ export const NutritionInsights: React.FC = () => {
     error,
     updateProfile
   } = useNutritionInsights();
+
+  const [showEditForm, setShowEditForm] = useState(false);
+
+  const ACTIVITY_LABELS: Record<string, string> = {
+    sedentary: 'Sedentary',
+    light: 'Lightly active',
+    moderate: 'Moderately active',
+    active: 'Active',
+    very_active: 'Very active'
+  };
+
+  const GOAL_LABELS: Record<string, string> = {
+    lose_weight: 'Lose weight',
+    maintain_weight: 'Maintain weight',
+    gain_muscle: 'Gain muscle',
+    improve_fitness: 'Improve fitness'
+  };
 
   // Helper to format missing field names for display
   const formatFieldName = (field: string) => {
@@ -74,54 +91,94 @@ export const NutritionInsights: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6">
-            {/* 1. Nutrition Profile Form */}
-            <NutritionProfileForm
-              initialProfile={profile}
-              saving={saving}
-              onSave={updateProfile}
-            />
-
-            {/* Incomplete profile message */}
+            {/* Incomplete profile state */}
             {isIncomplete ? (
-              <div
-                className="p-6 rounded-2xl border border-border bg-background flex flex-col items-center justify-center text-center space-y-3"
-              >
-                <div className="p-3 bg-amber-500/10 rounded-full text-amber-500">
-                  <AlertCircle size={24} />
+              <div className="space-y-6">
+                <div
+                  className="p-6 rounded-2xl border border-border bg-background flex flex-col items-center justify-center text-center space-y-3"
+                >
+                  <div className="p-3 bg-amber-500/10 rounded-full text-amber-500">
+                    <AlertCircle size={24} />
+                  </div>
+                  <h3 className="text-sm font-bold text-foreground">
+                    Complete your profile to generate your estimated nutrition target.
+                  </h3>
+                  <div className="flex flex-wrap justify-center gap-2 max-w-md pt-1">
+                    {missingFields.map((field) => (
+                      <span
+                        key={field}
+                        className="px-2.5 py-1 bg-amber-500/15 border border-amber-500/20 text-amber-500 text-[10px] font-bold uppercase rounded-lg tracking-wider"
+                      >
+                        {formatFieldName(field)}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <h3 className="text-sm font-bold text-foreground">
-                  Complete your nutrition profile to generate your estimated target.
-                </h3>
-                <div className="flex flex-wrap justify-center gap-2 max-w-md pt-1">
-                  {missingFields.map((field) => (
-                    <span
-                      key={field}
-                      className="px-2.5 py-1 bg-amber-500/15 border border-amber-500/20 text-amber-500 text-[10px] font-bold uppercase rounded-lg tracking-wider"
-                    >
-                      {formatFieldName(field)}
-                    </span>
-                  ))}
-                </div>
+
+                <NutritionProfileForm
+                  initialProfile={profile}
+                  saving={saving}
+                  onSave={updateProfile}
+                  missingFieldsOnly={true}
+                  missingFieldsList={missingFields}
+                />
               </div>
             ) : (
-              <>
+              // Complete profile state
+              <div className="space-y-6">
+                {/* Compact Profile Summary */}
+                <div 
+                  className="p-5 rounded-2xl border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  style={{ background: 'var(--card)' }}
+                >
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-extrabold text-foreground tracking-tight">Nutrition Profile</h3>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground font-medium">
+                      <span><strong>Weight:</strong> {profile.weightKg} kg</span>
+                      <span><strong>Height:</strong> {profile.heightCm} cm</span>
+                      <span><strong>Age:</strong> {profile.age} years</span>
+                      <span className="capitalize"><strong>Gender:</strong> {profile.gender}</span>
+                      <span><strong>Goal:</strong> {GOAL_LABELS[profile.goal || ''] || profile.goal}</span>
+                      <span><strong>Activity:</strong> {ACTIVITY_LABELS[profile.activityLevel || ''] || profile.activityLevel}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowEditForm(!showEditForm)}
+                    className="px-4 py-2 border border-border bg-muted/40 hover:bg-muted text-foreground rounded-xl text-xs font-bold transition-all shrink-0 sm:self-center"
+                  >
+                    {showEditForm ? 'Hide profile details' : 'Edit profile details'}
+                  </button>
+                </div>
+
+                {/* Editable Profile Form */}
+                {showEditForm && (
+                  <NutritionProfileForm
+                    initialProfile={profile}
+                    saving={saving}
+                    onSave={async (updates) => {
+                      await updateProfile(updates);
+                      setShowEditForm(false);
+                    }}
+                  />
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* 2. Estimated Daily Target */}
+                  {/* Estimated Daily Target */}
                   <DailyTargetCard targets={targets} loading={loadingTarget} />
 
-                  {/* 3. Macro Breakdown */}
+                  {/* Macro Breakdown */}
                   <MacroBreakdownCard targets={targets} loading={loadingTarget} />
                 </div>
 
-                {/* 4. Recommended Meal Plan */}
+                {/* Recommended Meal Plan */}
                 <MealPlanCard mealPlan={mealPlan} loading={loadingMealPlan} />
-              </>
+              </div>
             )}
 
-            {/* 5. Food Search Panel */}
+            {/* Food Search Panel */}
             <FoodSearchPanel />
 
-            {/* 6. Explanation Section */}
+            {/* Explanation Section */}
             <InsightExplanation />
           </div>
         )}

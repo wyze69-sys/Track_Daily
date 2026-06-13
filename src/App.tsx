@@ -13,6 +13,7 @@ import { History } from './pages/History';
 import { Progress } from './pages/Progress';
 import { Badges } from './pages/Badges';
 import { Profile } from './pages/Profile';
+import { ProfileSetup } from './pages/ProfileSetup';
 import { NutritionInsights } from './pages/insights/NutritionInsights';
 
 // Admin Pages
@@ -96,6 +97,14 @@ export default function App() {
             element={
               <ProtectedRoute allowedRole="student">
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/setup"
+            element={
+              <ProtectedRoute allowedRole="student">
+                <ProfileSetup />
               </ProtectedRoute>
             }
           />

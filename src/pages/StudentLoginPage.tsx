@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Dumbbell, ShieldAlert, Check, Loader2 } from 'lucide-react';
+import { nutritionService } from '../services/nutritionService';
 
 interface StudentLoginPageProps {
   initialMode?: 'login' | 'register';
@@ -32,7 +33,18 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({ initialMode 
       if (user.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
-        navigate('/dashboard');
+        nutritionService.getProfile()
+          .then((res) => {
+            if (res.isIncomplete) {
+              navigate('/profile/setup');
+            } else {
+              navigate('/dashboard');
+            }
+          })
+          .catch((err) => {
+            console.error('Failed to get profile status', err);
+            navigate('/dashboard');
+          });
       }
     }
   }, [user, navigate]);

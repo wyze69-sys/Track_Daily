@@ -9,7 +9,7 @@ export interface ProfileUpdatePayload {
   targetWeight?: number | null;
   preferredWorkoutType?: string | null;
   goal?: string | null;
-  activityLevel?: 'Sedentary' | 'Lightly active' | 'Moderately active' | 'Very active' | null;
+  activityLevel?: string | null;
 }
 
 export const profileService = {

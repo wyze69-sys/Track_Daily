@@ -6,12 +6,16 @@ interface NutritionProfileFormProps {
   initialProfile: NutritionProfile;
   saving: boolean;
   onSave: (profile: Partial<NutritionProfile>) => Promise<void>;
+  missingFieldsOnly?: boolean;
+  missingFieldsList?: string[];
 }
 
 export const NutritionProfileForm: React.FC<NutritionProfileFormProps> = ({
   initialProfile,
   saving,
-  onSave
+  onSave,
+  missingFieldsOnly = false,
+  missingFieldsList = []
 }) => {
   const [weightKg, setWeightKg] = useState<string>('');
   const [heightCm, setHeightCm] = useState<string>('');
@@ -92,6 +96,11 @@ export const NutritionProfileForm: React.FC<NutritionProfileFormProps> = ({
     }
   };
 
+  const shouldShow = (fieldName: string) => {
+    if (!missingFieldsOnly) return true;
+    return missingFieldsList.includes(fieldName);
+  };
+
   return (
     <div
       className="p-6 rounded-2xl border border-border"
@@ -113,140 +122,158 @@ export const NutritionProfileForm: React.FC<NutritionProfileFormProps> = ({
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="weightKg" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
-              Weight (kg)
-            </label>
-            <input
-              id="weightKg"
-              type="number"
-              step="any"
-              value={weightKg}
-              onChange={(e) => setWeightKg(e.target.value)}
-              className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-              placeholder="e.g. 70"
-            />
-          </div>
+        {(shouldShow('weightKg') || shouldShow('heightCm') || shouldShow('age')) && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {shouldShow('weightKg') && (
+              <div>
+                <label htmlFor="weightKg" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
+                  Weight (kg)
+                </label>
+                <input
+                  id="weightKg"
+                  type="number"
+                  step="any"
+                  value={weightKg}
+                  onChange={(e) => setWeightKg(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                  placeholder="e.g. 70"
+                />
+              </div>
+            )}
 
-          <div>
-            <label htmlFor="heightCm" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
-              Height (cm)
-            </label>
-            <input
-              id="heightCm"
-              type="number"
-              step="any"
-              value={heightCm}
-              onChange={(e) => setHeightCm(e.target.value)}
-              className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-              placeholder="e.g. 175"
-            />
-          </div>
+            {shouldShow('heightCm') && (
+              <div>
+                <label htmlFor="heightCm" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
+                  Height (cm)
+                </label>
+                <input
+                  id="heightCm"
+                  type="number"
+                  step="any"
+                  value={heightCm}
+                  onChange={(e) => setHeightCm(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                  placeholder="e.g. 175"
+                />
+              </div>
+            )}
 
-          <div>
-            <label htmlFor="age" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
-              Age (years)
-            </label>
-            <input
-              id="age"
-              type="number"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-              placeholder="e.g. 21"
-            />
+            {shouldShow('age') && (
+              <div>
+                <label htmlFor="age" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
+                  Age (years)
+                </label>
+                <input
+                  id="age"
+                  type="number"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                  placeholder="e.g. 21"
+                />
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="gender" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
-              Gender
-            </label>
-            <select
-              id="gender"
-              value={gender}
-              onChange={(e) => setGender(e.target.value)}
-              className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-            >
-              <option value="">Select Gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
+        {(shouldShow('gender') || shouldShow('goal') || shouldShow('activityLevel')) && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {shouldShow('gender') && (
+              <div>
+                <label htmlFor="gender" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
+                  Gender
+                </label>
+                <select
+                  id="gender"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            )}
 
-          <div>
-            <label htmlFor="goal" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
-              Goal
-            </label>
-            <select
-              id="goal"
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-            >
-              <option value="">Select Goal</option>
-              <option value="lose_weight">Lose weight</option>
-              <option value="maintain_weight">Maintain weight</option>
-              <option value="gain_muscle">Gain muscle</option>
-              <option value="improve_fitness">Improve fitness</option>
-            </select>
-          </div>
+            {shouldShow('goal') && (
+              <div>
+                <label htmlFor="goal" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
+                  Goal
+                </label>
+                <select
+                  id="goal"
+                  value={goal}
+                  onChange={(e) => setGoal(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                >
+                  <option value="">Select Goal</option>
+                  <option value="lose_weight">Lose weight</option>
+                  <option value="maintain_weight">Maintain weight</option>
+                  <option value="gain_muscle">Gain muscle</option>
+                  <option value="improve_fitness">Improve fitness</option>
+                </select>
+              </div>
+            )}
 
-          <div>
-            <label htmlFor="activityLevel" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
-              Activity Level
-            </label>
-            <select
-              id="activityLevel"
-              value={activityLevel}
-              onChange={(e) => setActivityLevel(e.target.value)}
-              className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-            >
-              <option value="">Select Activity</option>
-              <option value="sedentary">Sedentary (desk job)</option>
-              <option value="light">Lightly active (1-2 days/week)</option>
-              <option value="moderate">Moderately active (3-5 days/week)</option>
-              <option value="active">Active (6-7 days/week)</option>
-              <option value="very_active">Very active (athlete/heavy manual labor)</option>
-            </select>
+            {shouldShow('activityLevel') && (
+              <div>
+                <label htmlFor="activityLevel" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
+                  Activity Level
+                </label>
+                <select
+                  id="activityLevel"
+                  value={activityLevel}
+                  onChange={(e) => setActivityLevel(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                >
+                  <option value="">Select Activity</option>
+                  <option value="sedentary">Sedentary (desk job)</option>
+                  <option value="light">Lightly active (1-2 days/week)</option>
+                  <option value="moderate">Moderately active (3-5 days/week)</option>
+                  <option value="active">Active (6-7 days/week)</option>
+                  <option value="very_active">Very active (athlete/heavy manual labor)</option>
+                </select>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="dietPreference" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
-              Dietary Preference (Optional)
-            </label>
-            <select
-              id="dietPreference"
-              value={dietPreference}
-              onChange={(e) => setDietPreference(e.target.value)}
-              className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-            >
-              <option value="">None / Anything</option>
-              <option value="vegan">Vegan</option>
-              <option value="vegetarian">Vegetarian</option>
-              <option value="low-carb">Low Carb / Keto</option>
-            </select>
-          </div>
+        {!missingFieldsOnly && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="dietPreference" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
+                Dietary Preference (Optional)
+              </label>
+              <select
+                id="dietPreference"
+                value={dietPreference}
+                onChange={(e) => setDietPreference(e.target.value)}
+                className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+              >
+                <option value="">None / Anything</option>
+                <option value="vegan">Vegan</option>
+                <option value="vegetarian">Vegetarian</option>
+                <option value="low-carb">Low Carb / Keto</option>
+              </select>
+            </div>
 
-          <div>
-            <label htmlFor="allergies" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
-              Allergies (Optional, comma separated)
-            </label>
-            <input
-              id="allergies"
-              type="text"
-              value={allergyText}
-              onChange={(e) => setAllergyText(e.target.value)}
-              className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
-              placeholder="e.g. peanut, dairy, egg"
-            />
+            <div>
+              <label htmlFor="allergies" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
+                Allergies (Optional, comma separated)
+              </label>
+              <input
+                id="allergies"
+                type="text"
+                value={allergyText}
+                onChange={(e) => setAllergyText(e.target.value)}
+                className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                placeholder="e.g. peanut, dairy, egg"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="pt-2">
           <button
