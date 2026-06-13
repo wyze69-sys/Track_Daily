@@ -12,6 +12,8 @@ import { WeeklyPlan } from './pages/WeeklyPlan';
 import { History } from './pages/History';
 import { Progress } from './pages/Progress';
 import { Badges } from './pages/Badges';
+import { Profile } from './pages/Profile';
+import { NutritionInsights } from './pages/insights/NutritionInsights';
 
 // Admin Pages
 import { AdminDashboard } from './pages/AdminDashboard';
@@ -74,10 +76,26 @@ export default function App() {
             }
           />
           <Route
+            path="/insights/nutrition"
+            element={
+              <ProtectedRoute allowedRole="student">
+                <NutritionInsights />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/badges"
             element={
               <ProtectedRoute allowedRole="student">
                 <Badges />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute allowedRole="student">
+                <Profile />
               </ProtectedRoute>
             }
           />

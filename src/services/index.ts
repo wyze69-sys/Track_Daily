@@ -1,6 +1,5 @@
-// logweb v2 Frontend Service API Layer
-// This file is kept as a backward-compatible barrel re-export.
-// New code should import directly from the individual service files.
+// logweb services – barrel export
+// Import from this file or from the individual service files
 
 export { authService } from './authService';
 export type { UserSession, UserMeResponse } from './authService';

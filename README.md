@@ -1,20 +1,40 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Logweb – Workout Log Application
 
-# Run and deploy your AI Studio app
+Logweb is a responsive workout logging application built with a React frontend and Express backend.
 
-This contains everything you need to run your app locally.
+## Project Structure Overview
 
-View your app in AI Studio: https://ai.studio/apps/66f4adeb-86ba-4bc5-82af-84b81fa43b0c
+```
+logweb/
+├── docs/                   # Project documentation & structure design
+├── database/               # SQL schema definitions, migrations, and seed scripts
+├── backend/                # Production Express backend and backend tests
+├── src/                    # React frontend application
+│   ├── components/         # Reusable UI components
+│   ├── pages/              # Page views
+│   ├── services/           # Client-side network API services
+│   └── server/             # Development mock server
+├── server.ts               # Local development entry point
+└── package.json            # Scripts & project dependencies
+```
 
-## Run Locally
+For a detailed breakdown of directories, files, and where to add pages/components/routes, please see the [Project Structure Guide](file:///D:/PROJECT/logweb/docs/PROJECT_STRUCTURE.md).
 
-**Prerequisites:**  Node.js
+## Getting Started
 
+### Run Locally
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+**Prerequisites:** Node.js
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+2. **Set the environment variables:**
+   Set the `GEMINI_API_KEY` in `.env.local` to your Gemini API key.
+3. **Run the development mock server:**
+   ```bash
+   npm run dev
+   ```
+4. **Run production backend:**
+   See instructions inside the [backend/README.md](file:///D:/PROJECT/logweb/backend/README.md).

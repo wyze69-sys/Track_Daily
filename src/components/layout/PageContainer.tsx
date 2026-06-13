@@ -18,7 +18,9 @@ import {
   MessageSquare,
   PlusCircle,
   Shield,
+  Sparkles,
   Trophy,
+  User,
   Users,
   X,
   Zap
@@ -34,7 +36,9 @@ const studentNav = [
   { label: 'Weekly Plan', path: '/weekly-plan', icon: Calendar },
   { label: 'History', path: '/history', icon: History },
   { label: 'Progress', path: '/progress', icon: BarChart3 },
-  { label: 'Gamification', path: '/badges', icon: Trophy }
+  { label: 'AI Insights', path: '/insights/nutrition', icon: Sparkles },
+  { label: 'Gamification', path: '/badges', icon: Trophy },
+  { label: 'Profile Settings', path: '/profile', icon: User }
 ];
 
 const adminNav = [
@@ -48,13 +52,13 @@ const adminNav = [
 ];
 
 const initialsFor = (name?: string) => {
-  if (!name) return 'FS';
+  if (!name) return 'LW';
   return name
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase())
-    .join('') || 'FS';
+    .join('') || 'LW';
 };
 
 export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {

@@ -19,6 +19,18 @@ export interface UserProfile {
   currentStreak: number;
   maxStreak: number;
   lastWorkoutDate: string | null;
+  age?: number | null;
+  gender?: 'male' | 'female' | 'other' | string | null;
+  height?: number | null;
+  weight?: number | null;
+  targetWeight?: number | null;
+  preferredWorkoutType?: string | null;
+  goal?: string | null;
+  activityLevel?: 'Sedentary' | 'Lightly active' | 'Moderately active' | 'Very active' | string | null;
+  weightKg?: number | null;
+  heightCm?: number | null;
+  dietPreference?: string | null;
+  allergies?: string[] | null;
 }
 
 export interface ExerciseCategory {
