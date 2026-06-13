@@ -40,7 +40,9 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res) => {
       search: search as string,
       limit: parsedLimit,
       offset: parsedOffset,
-      includeInactive: parsedIncludeInactive
+      includeInactive: parsedIncludeInactive,
+      includeCustom: true,
+      currentUserId: req.user!.id
     });
 
     // Merge new and legacy fields to support both APIs seamlessly

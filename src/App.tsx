@@ -24,6 +24,7 @@ import { AdminTemplates } from './pages/AdminTemplates';
 import { AdminChallenges } from './pages/AdminChallenges';
 import { AdminAnnouncements } from './pages/AdminAnnouncements';
 import { AdminFeedback } from './pages/AdminFeedback';
+import { AdminActivityLibrary } from './pages/AdminActivityLibrary';
 
 export default function App() {
   return (
@@ -131,6 +132,14 @@ export default function App() {
             element={
               <ProtectedRoute allowedRole="admin">
                 <AdminCategories />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/activity-library"
+            element={
+              <ProtectedRoute allowedRole="admin">
+                <AdminActivityLibrary />
               </ProtectedRoute>
             }
           />

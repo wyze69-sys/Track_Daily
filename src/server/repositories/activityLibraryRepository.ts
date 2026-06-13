@@ -7,6 +7,8 @@ export interface ActivityFilters {
   limit?: number;
   offset?: number;
   includeInactive?: boolean;
+  includeCustom?: boolean;
+  currentUserId?: string;
 }
 
 export const activityLibraryRepository = {
@@ -30,6 +32,18 @@ export const activityLibraryRepository = {
     if (filters.categoryName) {
       const lowerCat = filters.categoryName.toLowerCase().trim();
       filtered = filtered.filter(item => item.categoryName.toLowerCase() === lowerCat);
+    }
+
+    // Filter by source (exclude custom unless includeCustom is true)
+    if (!filters.includeCustom) {
+      filtered = filtered.filter(item => item.source !== 'custom');
+    }
+
+    // Filter by ownership of custom activities if currentUserId is provided
+    if (filters.currentUserId) {
+      filtered = filtered.filter(item =>
+        item.source !== 'custom' || item.createdByUserId === filters.currentUserId
+      );
     }
 
     // Filter by search query (match name or tags)
@@ -77,5 +91,19 @@ export const activityLibraryRepository = {
     db.activityLibrary.push(item);
     writeDatabase(db);
     return item;
+  },
+
+  update(id: string, updates: Partial<ActivityLibraryItem>): ActivityLibraryItem | null {
+    const db = readDatabase();
+    const activities = db.activityLibrary || [];
+    const index = activities.findIndex(item => item.id === id);
+    if (index === -1) return null;
+
+    activities[index] = {
+      ...activities[index],
+      ...updates
+    };
+    writeDatabase(db);
+    return activities[index];
   }
 };

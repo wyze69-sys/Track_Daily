@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Dumbbell,
   FileCode2,
-  Flame,
   Grid,
   History,
   LayoutDashboard,
@@ -20,12 +19,10 @@ import {
   MessageSquare,
   PlusCircle,
   Shield,
-  Sparkles,
   Trophy,
   User,
   Users,
-  X,
-  Zap
+  X
 } from 'lucide-react';
 
 interface PageContainerProps {
@@ -47,6 +44,7 @@ const adminNav = [
   { label: 'Admin Dashboard', path: '/admin/dashboard', icon: Shield },
   { label: 'Users', path: '/admin/users', icon: Users },
   { label: 'Categories', path: '/admin/categories', icon: Grid },
+  { label: 'Activity Library', path: '/admin/activity-library', icon: Dumbbell },
   { label: 'Templates', path: '/admin/templates', icon: FileCode2 },
   { label: 'Announcements', path: '/admin/announcements', icon: Megaphone },
   { label: 'Challenges', path: '/admin/challenges', icon: Trophy },
