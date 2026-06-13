@@ -12,13 +12,13 @@ logweb/
 ├── backend/                # Real production Express backend
 │   ├── src/                # Backend source code (Controllers, Services, Routes, Repositories)
 │   └── test/               # Backend integration and unit tests
-├── src/                    # Frontend React application (and development mock server)
+├── src/                    # Frontend React application and local API server
 │   ├── components/         # Frontend shared UI components
 │   ├── pages/              # Frontend page containers
 │   ├── services/           # Frontend API and business services
-│   ├── server/             # Development mock server source code
+│   ├── server/             # Express API server source code for local development
 │   └── App.tsx & main.tsx  # React application root entrypoints
-├── server.ts               # Root entrypoint that boots the Vite/mock dev server
+├── server.ts               # Root entrypoint that boots the Vite + Express dev server
 ├── package.json            # Node project configuration and run scripts
 └── vite.config.ts          # Vite configuration for development and build bundler
 ```
@@ -41,12 +41,12 @@ The production Express API application is stored in the [backend/](file:///D:/PR
   - **Middleware**: [backend/src/middleware/](file:///D:/PROJECT/logweb/backend/src/middleware/)
 
 ## 3. Database Location (`database/`)
-All relational SQL schemas, database setup queries, mock seeds, and migration scripts reside in [database/](file:///D:/PROJECT/logweb/database/).
+All relational SQL schemas, database setup queries, reference seed data, and migration scripts reside in [database/](file:///D:/PROJECT/logweb/database/).
 - `schema.sql`: Contains the primary PostgreSQL/MySQL schema tables.
-- `seed.sql`: Contains mock/development initial seed datasets.
+- `seed.sql`: Contains reference seed datasets used to initialize development databases.
 - `migrations/`: Holds structural alter-table/migration SQL scripts.
 
 ## 4. Development Server Role (`server.ts` & `src/server/`)
-For local developer speed and ease of testing without requiring a live database connection or full-blown external hosting, the frontend features a Vite development server mounted alongside a mock Express server in [src/server/](file:///D:/PROJECT/logweb/src/server/).
+For local developer speed and ease of testing without requiring external hosting, the app runs Vite middleware alongside a real Express API server in [src/server/](file:///D:/PROJECT/logweb/src/server/).
 - Root `server.ts` is the main entry point run by `npm run dev`.
-- It dynamically loads Vite's middleware inside an Express application (`src/server/app.ts`) to serve pages and mock API endpoints.
+- It dynamically loads Vite's middleware inside an Express application (`src/server/app.ts`) to serve pages and API endpoints backed by the local data layer.

@@ -16,7 +16,7 @@ router.get('/latest', authMiddleware, (req: AuthenticatedRequest, res) => {
 
   let text = `You've logged ${total} workouts total so far, totaling ${totalMin} minutes of focus! Your current streak is ${streak} days. You are building amazing healthy habits. Keep showing up!`;
   if (total === 0) {
-    text = "Welcome to logweb! You haven't logged any workouts this week. It takes under a minute to start. How about a quick 10-minute jog or standard stretch today?";
+    text = "You have no workouts logged yet. Once you log an activity, this panel will summarize your real workout history.";
   }
   res.json({ text, date: new Date().toISOString() });
 });

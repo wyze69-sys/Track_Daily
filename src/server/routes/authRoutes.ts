@@ -22,7 +22,7 @@ router.post('/register', (req, res) => {
 
   const userId = 'u-' + Date.now();
   const passwordHash = bcrypt.hashSync(password, 10);
-  const role = email.toLowerCase().includes('admin') ? 'admin' : 'student';
+  const role = 'student';
 
   const newUser: User = {
     id: userId,
@@ -35,7 +35,7 @@ router.post('/register', (req, res) => {
   const newProfile: UserProfile = {
     userId,
     fullName,
-    avatar: `https://images.unsplash.com/photo-${role === 'admin' ? '1570295999919-56ceb5ecca61' : '1535713875002-d1d0cf377fde'}?w=150`,
+    avatar: '',
     level: 1,
     xp: 0,
     weeklyTarget: 3,
@@ -70,14 +70,7 @@ router.post('/login', (req, res) => {
     return;
   }
 
-  let isValid = false;
-  if (user.id === 'u-student' && password === 'password') {
-    isValid = true;
-  } else if (user.id === 'u-admin' && password === 'admin') {
-    isValid = true;
-  } else {
-    isValid = bcrypt.compareSync(password, user.passwordHash);
-  }
+  const isValid = bcrypt.compareSync(password, user.passwordHash);
 
   if (!isValid) {
     res.status(401).json({ error: 'Invalid login credentials' });
@@ -85,8 +78,8 @@ router.post('/login', (req, res) => {
   }
 
   const profile = db.userProfiles.find((p) => p.userId === user.id) || {
-    fullName: user.role === 'admin' ? 'Administrator' : 'Fity Student',
-    avatar: `https://images.unsplash.com/photo-${user.role === 'admin' ? '1570295999919-56ceb5ecca61' : '1535713875002-d1d0cf377fde'}?w=150`
+    fullName: 'User',
+    avatar: ''
   };
 
   const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
@@ -104,7 +97,7 @@ router.get('/me', authMiddleware, (req: AuthenticatedRequest, res) => {
     email: req.user!.email,
     role: req.user!.role,
     fullName: profile?.fullName || 'User',
-    avatar: profile?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+    avatar: profile?.avatar || '',
     profile
   });
 });

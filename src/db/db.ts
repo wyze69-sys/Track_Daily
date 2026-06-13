@@ -177,180 +177,27 @@ try {
   console.error("Failed to load default activities seed", e);
 }
 
-// Seed utility (bcrypt hashed hashes ready for: admin / password)
-// Admin target hash for password 'admin': $2a$10$7XvW78Mh.e9K1sP.6G9h8.aFAnBwS/6yWeu8uPhU2qCHzTq.V.3pC (will use simplified comparison or fallback, but keeping it standard)
+// Seed data contains only real reference data required for a new database.
+// User accounts, workouts, feedback, templates, announcements, and challenges must be created by real users/admins through the app.
 const SEED_DATA: DatabaseSchema = {
   activityLibrary: initialActivities,
-  users: [
-    {
-      id: "u-admin",
-      email: "admin@logweb.edu",
-      // BCrypt hash for "admin"
-      passwordHash: "$2a$10$w86H0AomY84g9S5A2mR58ex3m7N/fS0e659P4.p7/z6/9z.A4C626",
-      role: 'admin',
-      createdAt: "2026-06-01T08:00:00Z"
-    },
-    {
-      id: "u-student",
-      email: "student@logweb.edu",
-      // BCrypt hash for "password"
-      passwordHash: "$2a$10$Z3mS1bPh4p5c6X9e7f8g...hAsH... (we'll replace this with real bcrypt output in service or compare logic)" ,
-      role: 'student',
-      createdAt: "2026-06-01T08:30:00Z"
-    }
-  ],
-  userProfiles: [
-    {
-      userId: "u-student",
-      fullName: "Alex Miller",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-      level: 1,
-      xp: 40,
-      weeklyTarget: 3,
-      currentStreak: 2,
-      maxStreak: 5,
-      lastWorkoutDate: "2026-06-10"
-    }
-  ],
+  users: [],
+  userProfiles: [],
   exerciseCategories: [
-    { id: "cat-1", name: "Strength", icon: "Dumbbell", description: "Weightlifting, power training, and bodyweight exercises.", createdBy: "u-admin", createdAt: "2026-06-01T09:00:00Z" },
-    { id: "cat-2", name: "Cardio", icon: "Flame", description: "Running, cycling, high-intensity intervals, and metabolic conditioning.", createdBy: "u-admin", createdAt: "2026-06-01T09:00:00Z" },
-    { id: "cat-3", name: "Flexibility & Yoga", icon: "Sparkles", description: "Vinyasa flow, static stretching, and mobility routines.", createdBy: "u-admin", createdAt: "2026-06-01T09:00:00Z" },
-    { id: "cat-4", name: "Sports", icon: "Trophy", description: "Basketball, soccer, tennis, and quick campus recreational sports.", createdBy: "u-admin", createdAt: "2026-06-01T09:00:00Z" }
+    { id: "cat-1", name: "Strength", icon: "Dumbbell", description: "Weightlifting, power training, and bodyweight exercises.", createdBy: "system", createdAt: "2026-06-01T09:00:00Z" },
+    { id: "cat-2", name: "Cardio", icon: "Activity", description: "Running, cycling, intervals, and endurance conditioning.", createdBy: "system", createdAt: "2026-06-01T09:00:00Z" },
+    { id: "cat-3", name: "Flexibility & Yoga", icon: "StretchHorizontal", description: "Yoga, static stretching, and mobility routines.", createdBy: "system", createdAt: "2026-06-01T09:00:00Z" },
+    { id: "cat-4", name: "Sports", icon: "Trophy", description: "Team, racket, field, and recreational sports activities.", createdBy: "system", createdAt: "2026-06-01T09:00:00Z" }
   ],
-  workouts: [
-    {
-      id: "w-1",
-      userId: "u-student",
-      workoutType: "Strength",
-      durationMinutes: 45,
-      moodAfterWorkout: "Energetic",
-      note: "Pushed hard on my squats and bench press today in the school gym.",
-      templateId: null,
-      xpEarned: 70, // Base 50 + Over 30 min (+20)
-      createdAt: "2026-06-09T17:15:00Z"
-    },
-    {
-      id: "w-2",
-      userId: "u-student",
-      workoutType: "Cardio",
-      durationMinutes: 20,
-      moodAfterWorkout: "Accomplished",
-      note: "Quick treadmill log in between classes. Better than nothing!",
-      templateId: null,
-      xpEarned: 60, // Base 50 + Add mood/note (+10)
-      createdAt: "2026-06-10T11:30:00Z"
-    }
-  ],
-  userAchievements: [
-    { id: "ach-1", userId: "u-student", badgeId: "first_workout", unlockedAt: "2026-06-09T17:15:00Z" }
-  ],
-  workoutTemplates: [
-    {
-      id: "tpl-1",
-      name: "Campus Gym Upper Push",
-      category: "Strength",
-      durationMinutes: 40,
-      createdBy: "u-admin",
-      createdAt: "2026-06-02T10:00:00Z",
-      exercises: [
-        {
-          exerciseName: "Bench Press",
-          duration: 15,
-          sets: [
-            { reps: 10, weight: 60 },
-            { reps: 8, weight: 70 },
-            { reps: 6, weight: 80 }
-          ]
-        },
-        {
-          exerciseName: "Overhead Press",
-          duration: 15,
-          sets: [
-            { reps: 10, weight: 30 },
-            { reps: 10, weight: 35 },
-            { reps: 8, weight: 40 }
-          ]
-        },
-        {
-          exerciseName: "Tricep Pushdowns",
-          duration: 10,
-          sets: [
-            { reps: 12, weight: 20 },
-            { reps: 12, weight: 25 }
-          ]
-        }
-      ]
-    },
-    {
-      id: "tpl-2",
-      name: "Quick 20-Min Jog",
-      category: "Cardio",
-      durationMinutes: 20,
-      createdBy: "u-admin",
-      createdAt: "2026-06-02T10:15:00Z",
-      exercises: [
-        {
-          exerciseName: "Outdoor Run",
-          duration: 20,
-          sets: [
-            { reps: 1, weight: 0 }
-          ]
-        }
-      ]
-    },
-    {
-      id: "tpl-3",
-      name: "Sunset Yoga Stretch",
-      category: "Flexibility & Yoga",
-      durationMinutes: 15,
-      createdBy: "u-admin",
-      createdAt: "2026-06-02T10:20:00Z",
-      exercises: [
-        {
-          exerciseName: "Sun Salutation",
-          duration: 15,
-          sets: [
-            { reps: 1, weight: 0 }
-          ]
-        }
-      ]
-    }
-  ],
-  weeklyPlans: [
-    { id: "wp-1", userId: "u-student", targetCount: 3, currentCount: 2, weekStartDate: "2026-06-08" }
-  ],
-  challenges: [
-    { id: "chg-1", title: "Semester Startup Kickoff", description: "Join fellow campus students and log 3 workouts in a week to claim a sweet bonus!", targetWorkouts: 3, xpReward: 100, endDate: "2026-06-30" },
-    { id: "chg-2", title: "Flexibility Focus", description: "Give your body recess with 2 logged Yoga or stretching sessions.", targetWorkouts: 2, xpReward: 50, endDate: "2026-06-25" }
-  ],
-  userChallenges: [
-    { id: "uc-1", userId: "u-student", challengeId: "chg-1", progress: 2, status: "active", createdAt: "2026-06-08T09:00:00Z" }
-  ],
-  announcements: [
-    {
-      id: "ann-1",
-      title: "Welcome to logweb v2! ✨",
-      content: "We redesigned the logging system! It now takes under an amateur full minute to track your physical activities. Earn XP levels, maintain streaks, and show up consistently for you! No smartwatches, no professional bodybuilders, just you showing up for your studies and health.",
-      date: "2026-06-01T08:00:00Z"
-    }
-  ],
-  feedback: [
-    {
-      id: "fb-1",
-      userId: "u-student",
-      userName: "Alex Miller",
-      content: "I love logweb v2! The fast logs let me save so much tracking time in between classes. Could we get a badge for Morning workouts next?",
-      status: "pending",
-      date: "2026-06-10T12:00:00Z"
-    }
-  ]
+  workouts: [],
+  userAchievements: [],
+  workoutTemplates: [],
+  weeklyPlans: [],
+  challenges: [],
+  userChallenges: [],
+  announcements: [],
+  feedback: []
 };
-
-// Hash password synchronously in node (we'll also handle manual hashing fallback in case bcrypt is not initialized)
-import * as bcrypt from 'bcryptjs';
-// Replace placeholder student has with a real valid hash for 'password'
-SEED_DATA.users[1].passwordHash = bcrypt.hashSync('password', 10);
 
 export function readDatabase(): DatabaseSchema {
   try {

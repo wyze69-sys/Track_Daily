@@ -45,7 +45,7 @@ export function processWorkoutLogging(
     profile = {
       userId,
       fullName: db.users.find((u) => u.id === userId)?.email.split('@')[0] || 'Student',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      avatar: '',
       level: 1,
       xp: 0,
       weeklyTarget: 3,

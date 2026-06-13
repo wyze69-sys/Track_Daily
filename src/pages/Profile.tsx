@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { authService, profileService, weeklyPlanService } from '../services/api';
 import { PageContainer } from '../components/layout/PageContainer';
-import { User, Shield, Check, Loader2, Sparkles, AlertCircle, Goal, Award } from 'lucide-react';
+import { User, Shield, Check, Loader2, AlertCircle, Goal, Award } from 'lucide-react';
 
 export const Profile: React.FC = () => {
   const { refreshUser, logout } = useAuth();

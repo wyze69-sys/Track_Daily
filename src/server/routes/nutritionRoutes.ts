@@ -54,7 +54,11 @@ router.get('/target', authMiddleware, (req: AuthenticatedRequest, res) => {
     const target = calorieTargetService.getUserCalorieTarget(req.user.id);
     res.json(target);
   } catch (err: any) {
-    res.status(500).json({ error: err.message || 'An error occurred while calculating targets.' });
+    const status = err.status || 500;
+    res.status(status).json({
+      error: err.message || 'An error occurred while calculating targets.',
+      missingFields: err.missingFields
+    });
   }
 });
 

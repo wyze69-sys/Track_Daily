@@ -13,7 +13,7 @@ logweb/
 │   ├── components/         # Reusable UI components
 │   ├── pages/              # Page views
 │   ├── services/           # Client-side network API services
-│   └── server/             # Development mock server
+│   └── server/             # Local Express API server
 ├── server.ts               # Local development entry point
 └── package.json            # Scripts & project dependencies
 ```
@@ -32,7 +32,7 @@ For a detailed breakdown of directories, files, and where to add pages/component
    ```
 2. **Set the environment variables:**
    Set the `GEMINI_API_KEY` in `.env.local` to your Gemini API key.
-3. **Run the development mock server:**
+3. **Run the local development server:**
    ```bash
    npm run dev
    ```

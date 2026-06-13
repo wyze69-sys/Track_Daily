@@ -34,6 +34,13 @@ export const StudentTopNav: React.FC = () => {
     { label: 'Badges', path: '/badges', icon: Award }
   ];
 
+  const initials = (user?.fullName || user?.email || 'U')
+    .split(/\s|@/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'U';
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white shadow-xs backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
@@ -101,11 +108,17 @@ export const StudentTopNav: React.FC = () => {
               <p className="text-xs font-semibold text-gray-800">{user?.fullName}</p>
               <p className="text-[10px] text-gray-500 capitalize">{user?.role} Log</p>
             </div>
-            <img
-              src={user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}
-              alt="Avatar"
-              className="h-8 w-8 rounded-full border border-gray-200 object-cover"
-            />
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt="Avatar"
+                className="h-8 w-8 rounded-full border border-gray-200 object-cover"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-full border border-gray-200 bg-teal-50 text-teal-700 flex items-center justify-center text-xs font-bold">
+                {initials}
+              </div>
+            )}
             <button
               onClick={logout}
               title="Logout Securely"

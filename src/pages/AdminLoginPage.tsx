@@ -55,11 +55,6 @@ export const AdminLoginPage: React.FC = () => {
     }
   };
 
-  const setDemoCredentials = () => {
-    setEmail('admin@logweb.edu');
-    setPassword('admin');
-  };
-
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 border-t-4 border-amber-500">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
@@ -108,7 +103,7 @@ export const AdminLoginPage: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@logweb.edu"
+                  placeholder="Enter admin email"
                   className="w-full px-3 py-2 rounded-xl border border-border bg-input-background text-foreground text-sm focus:border-amber-500 outline-none"
                 />
               </div>
@@ -140,20 +135,11 @@ export const AdminLoginPage: React.FC = () => {
             </div>
           </form>
 
-          {/* Test account shortcuts */}
-          <div className="mt-6 pt-5 border-t border-border flex flex-col items-center gap-3">
-            <button
-              onClick={setDemoCredentials}
-              className="w-full px-3 py-2 text-xs font-bold rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition-all text-center"
-            >
-              Demo Admin Account
-            </button>
-            <div className="text-xs text-muted-foreground mt-1">
-              Are you a student?{' '}
-              <Link to="/login" className="text-primary hover:opacity-85 font-semibold underline">
-                Go to user login
-              </Link>
-            </div>
+          <div className="mt-6 pt-5 border-t border-border text-center">
+            <span className="text-xs text-muted-foreground">Are you a student? </span>
+            <Link to="/login" className="text-xs text-primary hover:opacity-85 font-semibold underline">
+              Go to user login
+            </Link>
           </div>
         </div>
       </div>

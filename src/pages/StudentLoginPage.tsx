@@ -76,12 +76,6 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({ initialMode 
     }
   };
 
-  const setDemoCredentials = () => {
-    setIsRegister(false);
-    setEmail('student@logweb.edu');
-    setPassword('password');
-  };
-
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 border-t-4 border-primary">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
@@ -150,7 +144,7 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({ initialMode 
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Alex Miller"
+                    placeholder="Your full name"
                     className="w-full px-3 py-2 rounded-xl border border-border text-sm bg-input-background focus:border-primary outline-none text-foreground"
                   />
                 </div>
@@ -165,7 +159,7 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({ initialMode 
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="student@logweb.edu"
+                  placeholder="Enter your email"
                   className="w-full px-3 py-2 rounded-xl border border-border text-sm bg-input-background focus:border-primary outline-none text-foreground"
                 />
               </div>
@@ -197,20 +191,11 @@ export const StudentLoginPage: React.FC<StudentLoginPageProps> = ({ initialMode 
             </div>
           </form>
 
-          {/* Demo account shortcuts */}
-          <div className="mt-6 pt-5 border-t border-border flex flex-col items-center gap-3">
-            <button
-              onClick={setDemoCredentials}
-              className="w-full px-3 py-2 text-xs font-bold rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all text-center"
-            >
-              Demo Student Account
-            </button>
-            <div className="text-xs text-muted-foreground mt-1">
-              Are you an administrator?{' '}
-              <Link to="/admin/login" className="text-primary hover:opacity-85 font-semibold underline">
-                Admin Console
-              </Link>
-            </div>
+          <div className="mt-6 pt-5 border-t border-border text-center">
+            <span className="text-xs text-muted-foreground">Are you an administrator? </span>
+            <Link to="/admin/login" className="text-xs text-primary hover:opacity-85 font-semibold underline">
+              Admin Console
+            </Link>
           </div>
         </div>
       </div>
