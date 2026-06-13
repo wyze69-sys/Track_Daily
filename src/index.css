@@ -86,7 +86,7 @@ button, input, textarea, select {
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
 
-/* Compatibility layer: make older FitSync pages inherit the Figma dark interface instead of the old white UI. */
+/* Compatibility layer: make older logweb pages inherit the Figma dark interface instead of the old white UI. */
 .bg-white,
 .bg-gray-50,
 .bg-slate-50,

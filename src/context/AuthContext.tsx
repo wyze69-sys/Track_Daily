@@ -24,8 +24,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     async function loadStoredUser() {
-      const token = localStorage.getItem('fitsync_token');
-      const stored = localStorage.getItem('fitsync_user');
+      const token = localStorage.getItem('logweb_token');
+      const stored = localStorage.getItem('logweb_user');
       if (token && stored) {
         try {
           setUser(JSON.parse(stored));
@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             avatar: fresh.avatar
           };
           setUser(updatedUser);
-          localStorage.setItem('fitsync_user', JSON.stringify(updatedUser));
+          localStorage.setItem('logweb_user', JSON.stringify(updatedUser));
         } catch (err) {
           console.error("Token invalid or backend disconnected, logging out", err);
           authService.logout();
@@ -53,15 +53,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, passwordHash: string) => {
     const session = await authService.login(email, passwordHash);
-    localStorage.setItem('fitsync_token', session.token);
-    localStorage.setItem('fitsync_user', JSON.stringify(session.user));
+    localStorage.setItem('logweb_token', session.token);
+    localStorage.setItem('logweb_user', JSON.stringify(session.user));
     setUser(session.user);
   };
 
   const register = async (email: string, passwordHash: string, fullName: string) => {
     const session = await authService.register(email, passwordHash, fullName);
-    localStorage.setItem('fitsync_token', session.token);
-    localStorage.setItem('fitsync_user', JSON.stringify(session.user));
+    localStorage.setItem('logweb_token', session.token);
+    localStorage.setItem('logweb_user', JSON.stringify(session.user));
     setUser(session.user);
   };
 
@@ -81,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         avatar: fresh.avatar
       };
       setUser(updatedUser);
-      localStorage.setItem('fitsync_user', JSON.stringify(updatedUser));
+      localStorage.setItem('logweb_user', JSON.stringify(updatedUser));
     } catch (err) {
       console.error("Failed to refresh user credentials", err);
     }

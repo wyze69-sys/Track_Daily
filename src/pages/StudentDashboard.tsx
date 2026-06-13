@@ -23,7 +23,8 @@ import {
   Megaphone,
   Plus,
   Trophy,
-  Zap
+  Zap,
+  RefreshCw
 } from 'lucide-react';
 
 const typeColor: Record<string, string> = {
@@ -48,27 +49,31 @@ export const StudentDashboard: React.FC = () => {
   const [gamification, setGamification] = useState<GamificationSummary | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchDashboardData = async () => {
+    try {
+      setRefreshing(true);
+      const [workoutsList, plan, summary, anns] = await Promise.all([
+        workoutService.getRecent(),
+        weeklyPlanService.get(),
+        gamificationService.getSummary(),
+        announcementService.getAll()
+      ]);
+      setWorkouts(workoutsList);
+      setWeeklyPlan(plan);
+      setGamification(summary);
+      setAnnouncements(anns.slice(0, 2));
+    } catch (err) {
+      console.error('Failed to fetch student dashboard data', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    let mounted = true;
-    Promise.all([
-      workoutService.getRecent(),
-      weeklyPlanService.get(),
-      gamificationService.getSummary(),
-      announcementService.getAll()
-    ])
-      .then(([workoutsList, plan, summary, anns]) => {
-        if (!mounted) return;
-        setWorkouts(workoutsList);
-        setWeeklyPlan(plan);
-        setGamification(summary);
-        setAnnouncements(anns.slice(0, 2));
-      })
-      .catch((err) => console.error('Failed to fetch student dashboard data', err))
-      .finally(() => mounted && setLoading(false));
-    return () => {
-      mounted = false;
-    };
+    fetchDashboardData();
   }, []);
 
   const totalSets = useMemo(
@@ -82,15 +87,16 @@ export const StudentDashboard: React.FC = () => {
   );
 
   const totalCalories = useMemo(
-    () => workouts.reduce((sum, workout) => sum + (Number(workout.caloriesBurned || workout.calories) || 0), 0),
+    () => workouts.reduce((sum, workout) => sum + (Number(workout.caloriesBurned || 0) || 0), 0),
     [workouts]
   );
 
   if (loading) {
     return (
       <PageContainer>
-        <div className="flex items-center justify-center py-24">
+        <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading training dashboard...</p>
         </div>
       </PageContainer>
     );
@@ -99,127 +105,212 @@ export const StudentDashboard: React.FC = () => {
   return (
     <PageContainer>
       <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm uppercase tracking-[0.22em] text-muted-foreground">Training overview</p>
-            <h1 className="mt-0.5 text-2xl font-black text-foreground">{user?.fullName ? `${user.fullName.split(' ')[0]}'s dashboard` : 'Dashboard'}</h1>
-          </div>
-          <Link
-            to="/quick-log"
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all hover:brightness-110 active:scale-95"
-            style={{ background: '#a3e635', color: '#09090f' }}
-          >
-            <Plus size={16} />
-            Log Workout
-          </Link>
-        </div>
-
-        <div
-          className="flex flex-col gap-4 rounded-xl p-4 lg:flex-row lg:items-center lg:justify-between"
-          style={{ background: 'linear-gradient(135deg, rgba(163,230,53,0.15) 0%, rgba(132,204,22,0.05) 100%)', border: '1px solid rgba(163,230,53,0.2)' }}
+        {/* Header section */}
+        <div 
+          className="flex flex-col gap-4 rounded-xl p-5 lg:flex-row lg:items-center lg:justify-between"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
         >
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-1.5">
-              <Flame size={20} color="#f97316" />
-              <span className="font-bold text-orange-500">{gamification?.currentStreak || 0}-day streak</span>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+              <Dumbbell className="h-5 w-5 text-primary" />
             </div>
-            <div className="hidden h-5 w-px bg-border sm:block" />
-            <div className="flex items-center gap-1.5">
-              <Zap size={20} color="#a3e635" />
-              <span className="font-bold text-primary">Level {gamification?.level || 1} · {gamification?.xp || 0} XP</span>
-            </div>
-            <div className="hidden h-5 w-px bg-border sm:block" />
-            <div className="flex items-center gap-1.5">
-              <Trophy size={20} color="#fbbf24" />
-              <span className="font-bold text-amber-400">{gamification?.badges?.length || 0} badges</span>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Student Hub</p>
+              <h1 className="text-lg font-black text-foreground">
+                {user?.fullName ? `${user.fullName.split(' ')[0]}'s dashboard` : 'Dashboard'}
+              </h1>
             </div>
           </div>
-          <Link to="/badges" className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
-            View all <ChevronRight size={14} />
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={fetchDashboardData}
+              disabled={refreshing}
+              className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-xs font-bold text-foreground transition-all hover:bg-muted"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+            <Link
+              to="/quick-log"
+              className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-1.5 text-xs font-bold text-primary-foreground transition-all hover:brightness-110 active:scale-95"
+            >
+              <Plus size={14} />
+              Log Workout
+            </Link>
+          </div>
+        </div>
+
+        {/* Streak & Level Widget */}
+        <div
+          className="flex flex-col gap-4 rounded-xl p-5 lg:flex-row lg:items-center lg:justify-between"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+        >
+          <div className="flex flex-wrap items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500/10">
+                <Flame size={18} color="#f97316" />
+              </div>
+              <div>
+                <span className="block text-xs text-muted-foreground font-semibold uppercase tracking-wider">Workout Streak</span>
+                <span className="text-sm font-black text-orange-500">{gamification?.currentStreak || 0}-day streak</span>
+              </div>
+            </div>
+            <div className="hidden h-6 w-px bg-border lg:block" />
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <Zap size={18} color="#a3e635" />
+              </div>
+              <div>
+                <span className="block text-xs text-muted-foreground font-semibold uppercase tracking-wider">Level Status</span>
+                <span className="text-sm font-black text-primary">Level {gamification?.level || 1} · {gamification?.xp || 0} XP</span>
+              </div>
+            </div>
+            <div className="hidden h-6 w-px bg-border lg:block" />
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10">
+                <Trophy size={18} color="#fbbf24" />
+              </div>
+              <div>
+                <span className="block text-xs text-muted-foreground font-semibold uppercase tracking-wider">Achievements</span>
+                <span className="text-sm font-black text-amber-450">{gamification?.badgesCount || 0} Badges Earned</span>
+              </div>
+            </div>
+          </div>
+          <Link to="/badges" className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
+            View milestones <ChevronRight size={13} />
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {/* KPIs Grid */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
-            { label: 'Recent calories', value: totalCalories || 0, unit: 'kcal', icon: Flame, color: '#f97316', bg: 'rgba(249,115,22,0.12)' },
-            { label: 'Active minutes', value: totalMinutes || 0, unit: 'min', icon: Clock, color: '#38bdf8', bg: 'rgba(56,189,248,0.12)' },
-            { label: 'Tracked sets', value: totalSets || 0, unit: 'sets', icon: Dumbbell, color: '#a3e635', bg: 'rgba(163,230,53,0.12)' },
-            { label: 'Plan target', value: weeklyPlan?.targetWorkouts || 0, unit: 'weekly', icon: Calendar, color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' }
+            { label: 'Recent energy', value: totalCalories || 0, unit: 'kcal', icon: Flame, color: '#f97316', bg: 'rgba(249,115,22,0.08)' },
+            { label: 'Active time', value: totalMinutes || 0, unit: 'min', icon: Clock, color: '#38bdf8', bg: 'rgba(56,189,248,0.08)' },
+            { label: 'Tracked sets', value: totalSets || 0, unit: 'sets', icon: Dumbbell, color: '#a3e635', bg: 'rgba(163,230,53,0.08)' },
+            { label: 'Weekly target', value: weeklyPlan?.targetCount || 0, unit: 'weekly', icon: Calendar, color: '#a78bfa', bg: 'rgba(167,139,250,0.08)' }
           ].map((stat) => (
-            <div key={stat.label} className="rounded-xl p-4" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-xs uppercase tracking-widest text-muted-foreground">{stat.label}</span>
+            <div key={stat.label} className="rounded-xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</span>
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: stat.bg }}>
-                  <stat.icon size={16} color={stat.color} />
+                  <stat.icon size={15} color={stat.color} />
                 </div>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-extrabold leading-none text-foreground">{stat.value}</span>
-                <span className="text-sm text-muted-foreground">{stat.unit}</span>
+                <span className="text-2xl font-black text-foreground">{stat.value}</span>
+                <span className="text-xs text-muted-foreground">{stat.unit}</span>
               </div>
             </div>
           ))}
         </div>
 
-        {announcements.length > 0 && (
-          <div className="rounded-xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-            <div className="mb-3 flex items-center gap-2">
-              <Megaphone size={18} color="#fbbf24" />
-              <h3 className="text-foreground">Announcements</h3>
-            </div>
-            <div className="space-y-2">
-              {announcements.map((announcement) => (
-                <div key={announcement.id} className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                  <p className="text-sm font-bold text-foreground">{announcement.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{announcement.body}</p>
+        {/* Main Split Grid */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Left: Recent Workouts list */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="rounded-xl border border-border overflow-hidden bg-card">
+              <div className="flex items-center justify-between p-5 pb-3 border-b border-border">
+                <div>
+                  <h3 className="text-sm font-black text-foreground">Recent Workouts</h3>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Your latest 5 logged physical activities.</p>
                 </div>
-              ))}
+                <Link to="/history" className="text-xs font-bold text-primary transition-colors hover:opacity-85">View Journal</Link>
+              </div>
+
+              {workouts.length === 0 ? (
+                <div className="p-8 text-center text-xs text-muted-foreground italic">
+                  No workouts logged yet. Save your first workout using the Quick Log builder.
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {workouts.slice(0, 5).map((workout) => {
+                    const color = typeColor[workout.workoutType] || '#a3e635';
+                    const setCount = (workout.exercises || []).reduce((sum, exercise) => sum + (exercise.sets?.length || 0), 0);
+                    return (
+                      <div
+                        key={workout.id}
+                        className="flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.01]"
+                      >
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl" style={{ background: `${color}10` }}>
+                          {workout.workoutType === 'Cardio' ? <Heart size={16} color={color} /> : <Dumbbell size={16} color={color} />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-bold text-foreground">{workout.workoutType} Session</p>
+                          <p className="mt-0.5 text-[10px] text-muted-foreground">
+                            {formatDate(workout.createdAt)} · {workout.durationMinutes} min
+                          </p>
+                        </div>
+                        <div className="hidden text-right text-xs text-muted-foreground sm:block">
+                          <p className="text-xs font-bold text-foreground">{setCount || workout.exercises?.length || 0}</p>
+                          <p className="text-[10px]">{setCount ? 'sets' : 'exercises'}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-bold text-foreground">+{workout.xpEarned} XP</p>
+                          <span className="rounded px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider" style={{ background: `${color}15`, color }}>
+                            {workout.workoutType}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
-        )}
 
-        <div className="rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-          <div className="flex items-center justify-between p-5 pb-3">
-            <h3 className="text-foreground">Recent Workouts</h3>
-            <Link to="/history" className="text-sm text-primary transition-colors hover:opacity-80">View all</Link>
-          </div>
-
-          {workouts.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">No workouts yet. Start with your first real log.</div>
-          ) : (
-            <div>
-              {workouts.slice(0, 5).map((workout, index) => {
-                const color = typeColor[workout.workoutType] || '#a3e635';
-                const setCount = (workout.exercises || []).reduce((sum, exercise) => sum + (exercise.sets?.length || 0), 0);
-                return (
-                  <div
-                    key={workout.id}
-                    className="flex items-center gap-4 px-5 py-3 transition-colors hover:bg-white/[0.02]"
-                    style={{ borderTop: index > 0 ? '1px solid var(--border)' : undefined }}
-                  >
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl" style={{ background: `${color}18` }}>
-                      {workout.workoutType === 'Cardio' ? <Heart size={18} color={color} /> : <Dumbbell size={18} color={color} />}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-foreground">{workout.title || workout.workoutType}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{formatDate(workout.createdAt)} · {workout.durationMinutes} min</p>
-                    </div>
-                    <div className="hidden text-right text-xs text-muted-foreground sm:block">
-                      <p className="text-sm font-semibold text-foreground">{setCount || workout.exercises?.length || 0}</p>
-                      <p>{setCount ? 'sets' : 'moves'}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-orange-500">{workout.caloriesBurned || workout.calories || 0} kcal</p>
-                      <span className="rounded px-2 py-0.5 text-xs" style={{ background: `${color}18`, color }}>
-                        {workout.workoutType}
-                      </span>
-                    </div>
+          {/* Right Sidebar: Announcements & Goal Progress */}
+          <div className="space-y-6">
+            {/* Weekly Target Progress Card */}
+            {weeklyPlan && (
+              <div className="rounded-xl border border-border p-5 space-y-4 bg-card">
+                <div>
+                  <h3 className="text-sm font-black text-foreground">Weekly Target Status</h3>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Progress toward your weekly workout target.</p>
+                </div>
+                <div className="rounded-xl bg-muted/10 border border-border p-4 space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Logged:</span>
+                    <span className="font-bold text-foreground">{weeklyPlan.currentCount} / {weeklyPlan.targetCount} workouts</span>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{ width: `${Math.min(100, (weeklyPlan.currentCount / (weeklyPlan.targetCount || 1)) * 100)}%` }}
+                    />
+                  </div>
+                  {weeklyPlan.currentCount >= weeklyPlan.targetCount ? (
+                    <p className="text-[10px] font-bold text-primary flex items-center gap-1 leading-none mt-1">
+                      Target hit! Weekly bonus points unlocked.
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-muted-foreground leading-normal mt-1">
+                      Log {weeklyPlan.targetCount - weeklyPlan.currentCount} more workouts to claim your bonus.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Announcements Card */}
+            {announcements.length > 0 && (
+              <div className="rounded-xl border border-border p-5 space-y-4 bg-card">
+                <div className="flex items-center gap-2">
+                  <Megaphone size={16} className="text-primary" />
+                  <h3 className="text-sm font-black text-foreground">Announcements</h3>
+                </div>
+                <div className="space-y-3">
+                  {announcements.map((ann) => (
+                    <div key={ann.id} className="rounded-lg p-3 border border-border bg-muted/10 space-y-1">
+                      <p className="text-xs font-bold text-foreground">{ann.title}</p>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">{ann.content}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+
       </div>
     </PageContainer>
   );

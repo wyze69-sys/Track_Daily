@@ -143,7 +143,7 @@ const SEED_DATA: DatabaseSchema = {
   users: [
     {
       id: "u-admin",
-      email: "admin@fitsync.edu",
+      email: "admin@logweb.edu",
       // BCrypt hash for "admin"
       passwordHash: "$2a$10$w86H0AomY84g9S5A2mR58ex3m7N/fS0e659P4.p7/z6/9z.A4C626",
       role: 'admin',
@@ -151,7 +151,7 @@ const SEED_DATA: DatabaseSchema = {
     },
     {
       id: "u-student",
-      email: "student@fitsync.edu",
+      email: "student@logweb.edu",
       // BCrypt hash for "password"
       passwordHash: "$2a$10$Z3mS1bPh4p5c6X9e7f8g...hAsH... (we'll replace this with real bcrypt output in service or compare logic)" ,
       role: 'student',
@@ -222,7 +222,7 @@ const SEED_DATA: DatabaseSchema = {
   announcements: [
     {
       id: "ann-1",
-      title: "Welcome to FitSync v2! ✨",
+      title: "Welcome to logweb v2! ✨",
       content: "We redesigned the logging system! It now takes under an amateur full minute to track your physical activities. Earn XP levels, maintain streaks, and show up consistently for you! No smartwatches, no professional bodybuilders, just you showing up for your studies and health.",
       date: "2026-06-01T08:00:00Z"
     }
@@ -232,7 +232,7 @@ const SEED_DATA: DatabaseSchema = {
       id: "fb-1",
       userId: "u-student",
       userName: "Alex Miller",
-      content: "I love FitSync v2! The fast logs let me save so much tracking time in between classes. Could we get a badge for Morning workouts next?",
+      content: "I love logweb v2! The fast logs let me save so much tracking time in between classes. Could we get a badge for Morning workouts next?",
       status: "pending",
       date: "2026-06-10T12:00:00Z"
     }

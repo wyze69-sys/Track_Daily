@@ -129,8 +129,8 @@ export const QuickLog: React.FC = () => {
     setSelectedTemplateId(tpl.id);
     setWorkoutType(tpl.category || tpl.categoryName || workoutType);
     setTemplateName(tpl.name || tpl.title || '');
-    setNote(`Loaded saved workout: ${tpl.name || tpl.title}`);
-    setSuccess(`Loaded ${tpl.name || tpl.title}. You can edit sets before saving today's log.`);
+    setNote(`Loaded saved workout template: ${tpl.name || tpl.title}`);
+    setSuccess(`Loaded template '${tpl.name || tpl.title}'.`);
     setError(null);
 
     const draftExercises: DraftExercise[] = (tpl.exercises || []).map((exercise) => ({
@@ -253,7 +253,7 @@ export const QuickLog: React.FC = () => {
       return;
     }
     if (selectedExercises.length === 0) {
-      setError('Add exercises before saving a custom workout.');
+      setError('Add exercises before saving a custom template.');
       return;
     }
 
@@ -273,9 +273,9 @@ export const QuickLog: React.FC = () => {
       });
       setTemplates((current) => [saved, ...current.filter((tpl) => tpl.id !== saved.id)]);
       setSelectedTemplateId(saved.id);
-      setSuccess(`Saved '${saved.name}' as your custom workout template.`);
+      setSuccess(`Saved template '${saved.name}' to library.`);
     } catch (err: any) {
-      setError(err?.message || 'Could not save this custom workout.');
+      setError(err?.message || 'Could not save workout template.');
     } finally {
       setTemplateSaving(false);
     }
@@ -331,11 +331,11 @@ export const QuickLog: React.FC = () => {
   };
 
   const moodOptions = [
-    { label: '⚡ Energetic', value: 'Energetic' },
-    { label: '🏆 Accomplished', value: 'Accomplished' },
-    { label: '😌 Satisfied', value: 'Satisfied' },
-    { label: '😴 Tired', value: 'Tired' },
-    { label: '🥵 Exhausted', value: 'Exhausted' }
+    { label: 'Energetic', value: 'Energetic' },
+    { label: 'Accomplished', value: 'Accomplished' },
+    { label: 'Satisfied', value: 'Satisfied' },
+    { label: 'Tired', value: 'Tired' },
+    { label: 'Exhausted', value: 'Exhausted' }
   ];
 
   return (
@@ -344,43 +344,45 @@ export const QuickLog: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/dashboard')}
-            className="p-2 bg-white rounded-xl border border-gray-150 hover:bg-gray-50 text-gray-700 shadow-2xs transition-colors active:scale-95"
+            className="p-2 rounded-xl border border-border hover:bg-muted/30 text-muted-foreground transition-colors active:scale-95"
+            style={{ background: 'var(--card)' }}
           >
             <ArrowLeft className="h-4.5 w-4.5" />
           </button>
           <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-gray-950">Workout Builder Log</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Choose exercises, add sets, and save the workout to history.</p>
+            <h1 className="text-xl font-black tracking-tight text-foreground">Workout Builder</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Customize your exercises, sets, and logs for your training journal.</p>
           </div>
         </div>
 
         {error && (
-          <div className="p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl text-sm font-medium">
+          <div className="p-4 border border-red-500/20 bg-red-500/10 text-red-400 rounded-xl text-xs font-semibold">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl text-sm font-medium">
+          <div className="p-4 border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 rounded-xl text-xs font-semibold">
             {success}
           </div>
         )}
 
         <form onSubmit={handleQuickSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left panel: exercises search & category selector */}
           <div className="lg:col-span-4 space-y-5">
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-4">
+            <div className="p-5 rounded-2xl border border-border bg-card space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase text-gray-500 tracking-wider">Exercise Library</p>
-                  <h2 className="text-base font-extrabold text-gray-950">Choose movement</h2>
+                  <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Exercise Library</p>
+                  <h2 className="text-sm font-black text-foreground">Add Exercise</h2>
                 </div>
-                <Dumbbell className="h-5 w-5 text-teal-600" />
+                <Dumbbell className="h-5 w-5 text-primary" />
               </div>
 
               {loadingOptions ? (
                 <div className="space-y-2">
-                  <div className="animate-pulse h-10 bg-gray-50 rounded-xl" />
-                  <div className="animate-pulse h-24 bg-gray-50 rounded-xl" />
+                  <div className="animate-pulse h-10 bg-muted/20 rounded-xl" />
+                  <div className="animate-pulse h-24 bg-muted/20 rounded-xl" />
                 </div>
               ) : (
                 <>
@@ -390,10 +392,10 @@ export const QuickLog: React.FC = () => {
                         type="button"
                         key={cat.id}
                         onClick={() => { setWorkoutType(cat.name); setSelectedTemplateId(null); }}
-                        className={`py-2.5 px-2 text-xs font-bold rounded-xl border text-center transition-all active:scale-[0.98] ${
+                        className={`py-2 px-2 text-xs font-bold rounded-xl border text-center transition-all active:scale-[0.98] ${
                           workoutType === cat.name
-                            ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
-                            : 'bg-white text-gray-700 border-gray-100 hover:bg-gray-50'
+                            ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                            : 'bg-muted/10 text-muted-foreground border-border hover:bg-muted/30 hover:text-foreground'
                         }`}
                       >
                         {cat.name}
@@ -402,32 +404,32 @@ export const QuickLog: React.FC = () => {
                   </div>
 
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                       value={exerciseSearch}
                       onChange={(e) => setExerciseSearch(e.target.value)}
-                      placeholder="Search exercise..."
-                      className="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-1 focus:ring-teal-500 outline-none"
+                      placeholder="Search movements..."
+                      className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-border bg-input-background focus:border-primary outline-none"
                     />
                   </div>
 
-                  <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
                     {filteredLibrary.map((exercise) => (
                       <button
                         type="button"
                         key={exercise.id}
                         onClick={() => addExerciseFromLibrary(exercise)}
-                        className="w-full text-left p-3 rounded-xl border border-gray-100 hover:border-teal-200 hover:bg-teal-50/40 transition-all group active:scale-[0.99]"
+                        className="w-full text-left p-3 rounded-xl border border-border hover:border-primary/40 hover:bg-white/[0.01] transition-all group active:scale-[0.99]"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <p className="text-xs font-extrabold text-gray-950">{exercise.name}</p>
-                            <p className="text-[10px] text-gray-500 mt-1 font-semibold">
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-foreground truncate">{exercise.name}</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5 font-semibold">
                               {exercise.muscleGroup} • {exercise.equipment}
                             </p>
                           </div>
-                          <span className="h-7 w-7 rounded-lg bg-gray-50 group-hover:bg-teal-600 group-hover:text-white flex items-center justify-center transition-colors">
-                            <Plus className="h-3.5 w-3.5" />
+                          <span className="h-6 w-6 rounded-lg bg-muted flex-shrink-0 group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center transition-colors">
+                            <Plus className="h-3 w-3" />
                           </span>
                         </div>
                       </button>
@@ -437,33 +439,34 @@ export const QuickLog: React.FC = () => {
                   <button
                     type="button"
                     onClick={addBlankExercise}
-                    className="w-full py-2.5 text-xs font-bold rounded-xl border border-dashed border-teal-300 text-teal-700 hover:bg-teal-50 transition-colors"
+                    className="w-full py-2.5 text-xs font-bold rounded-xl border border-dashed border-primary/30 text-primary hover:bg-primary/5 transition-colors"
                   >
-                    + Add custom exercise
+                    + Add Custom Exercise
                   </button>
                 </>
               )}
             </div>
 
+            {/* Workout template loader */}
             {templates.length > 0 && (
-              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-3">
+              <div className="p-5 rounded-2xl border border-border bg-card space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-bold uppercase text-gray-500 tracking-wider">Saved workouts</p>
-                    <h3 className="text-sm font-extrabold text-gray-950">Search & load template</h3>
+                    <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider">Templates</p>
+                    <h3 className="text-sm font-black text-foreground">Load Template</h3>
                   </div>
-                  <Save className="h-4.5 w-4.5 text-teal-700" />
+                  <Save className="h-4 w-4 text-primary" />
                 </div>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     value={templateSearch}
                     onChange={(e) => setTemplateSearch(e.target.value)}
-                    placeholder="Search Push Day, Leg Day..."
-                    className="w-full pl-9 pr-3 py-2.5 text-xs rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-1 focus:ring-teal-500 outline-none"
+                    placeholder="Search templates..."
+                    className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-border bg-input-background focus:border-primary outline-none"
                   />
                 </div>
-                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                   {filteredTemplates.map((tpl) => (
                     <button
                       type="button"
@@ -471,61 +474,62 @@ export const QuickLog: React.FC = () => {
                       onClick={() => handleTemplateSelect(tpl)}
                       className={`w-full text-left p-3 rounded-xl border transition-all active:scale-[0.99] ${
                         selectedTemplateId === tpl.id
-                          ? 'border-teal-500 bg-teal-50/60 text-teal-950'
-                          : 'border-gray-100 hover:bg-gray-50 text-gray-700'
+                          ? 'border-primary bg-primary/10 text-foreground'
+                          : 'border-border hover:border-primary/20 hover:bg-white/[0.01] text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs font-bold">{tpl.name || tpl.title}</p>
+                        <p className="text-xs font-bold text-foreground">{tpl.name || tpl.title}</p>
                         {tpl.createdBy && (
-                          <span className="text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                          <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25">
                             Mine
                           </span>
                         )}
                       </div>
-                      <p className="text-[10px] text-gray-500 mt-1 uppercase font-semibold">
+                      <p className="text-[9px] text-muted-foreground mt-0.5 uppercase font-semibold">
                         {tpl.category} • {tpl.durationMinutes || tpl.durationMin || 0}m • {tpl.exercises?.length || 0} moves
                       </p>
                     </button>
                   ))}
                   {filteredTemplates.length === 0 && (
-                    <p className="text-xs text-gray-500 bg-gray-50 rounded-xl p-3">No saved workout matches this search.</p>
+                    <p className="text-xs text-muted-foreground bg-muted/10 rounded-xl p-3 text-center italic">No templates match search.</p>
                   )}
                 </div>
               </div>
             )}
           </div>
 
-          <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-gray-100 shadow-xs space-y-5">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+          {/* Middle panel: set-by-set tracker */}
+          <div className="lg:col-span-5 p-5 rounded-2xl border border-border bg-card space-y-5">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div>
-                <p className="text-xs font-bold uppercase text-gray-500 tracking-wider">Set-by-set tracker</p>
-                <h2 className="text-base font-extrabold text-gray-950">Today's workout</h2>
+                <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider font-mono">Tracker</p>
+                <h2 className="text-sm font-black text-foreground">Workout Details</h2>
               </div>
-              <span className="text-xs font-mono font-bold text-teal-800 bg-teal-50 px-3 py-1 rounded-full border border-teal-100">
+              <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
                 {durationMinutes} min
               </span>
             </div>
 
             {selectedExercises.length === 0 ? (
-              <div className="border border-dashed border-gray-200 rounded-2xl p-8 text-center text-gray-500 bg-gray-50/40">
-                <ListChecks className="h-8 w-8 mx-auto mb-3 text-gray-300" />
-                <p className="text-sm font-bold text-gray-800">No exercises yet</p>
-                <p className="text-xs mt-1">Choose from the library to build a real workout log.</p>
+              <div className="border border-dashed border-border rounded-2xl p-8 text-center text-muted-foreground bg-muted/5">
+                <ListChecks className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                <p className="text-xs font-bold text-foreground">Workout log is empty</p>
+                <p className="text-[10px] mt-1 text-muted-foreground">Select movements from the library to configure exercises.</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
                 {selectedExercises.map((exercise, exerciseIndex) => (
-                  <div key={exercise.localId} className="rounded-2xl border border-gray-100 bg-gray-50/40 p-4 space-y-3 transition-all hover:border-gray-200">
+                  <div key={exercise.localId} className="rounded-2xl border border-border bg-muted/10 p-4 space-y-3 transition-all">
                     <div className="flex items-start gap-3">
-                      <span className="h-8 w-8 rounded-xl bg-gray-900 text-white text-xs font-black flex items-center justify-center">
+                      <span className="h-7 w-7 rounded-lg bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center flex-shrink-0">
                         {exerciseIndex + 1}
                       </span>
                       <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <input
                           value={exercise.exerciseName}
                           onChange={(e) => updateExercise(exercise.localId, { exerciseName: e.target.value })}
-                          className="sm:col-span-2 text-xs p-2 rounded-lg border border-gray-200 bg-white font-bold text-gray-900"
+                          className="sm:col-span-2 text-xs p-2 rounded-lg border border-border bg-input-background font-bold text-foreground focus:border-primary outline-none"
                         />
                         <div className="flex items-center gap-2">
                           <input
@@ -533,36 +537,36 @@ export const QuickLog: React.FC = () => {
                             min="1"
                             value={exercise.duration}
                             onChange={(e) => updateExercise(exercise.localId, { duration: Number(e.target.value) || 0 })}
-                            className="w-full text-xs p-2 rounded-lg border border-gray-200 bg-white"
+                            className="w-full text-xs p-2 rounded-lg border border-border bg-input-background focus:border-primary outline-none"
                           />
-                          <span className="text-[10px] font-bold text-gray-500">min</span>
+                          <span className="text-[10px] font-bold text-muted-foreground">min</span>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeExercise(exercise.localId)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
 
-                    <div className="pl-0 sm:pl-11 space-y-2">
-                      <div className="grid grid-cols-[40px_1fr_1fr_36px] gap-2 text-[10px] uppercase font-bold text-gray-500 px-1">
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-[30px_1fr_1fr_30px] gap-2 text-[9px] uppercase font-bold text-muted-foreground px-1">
                         <span>Set</span>
                         <span>Reps</span>
                         <span>Weight kg</span>
                         <span />
                       </div>
                       {exercise.sets.map((set, setIndex) => (
-                        <div key={`${exercise.localId}_${setIndex}`} className="grid grid-cols-[40px_1fr_1fr_36px] gap-2 items-center">
-                          <span className="text-xs font-mono font-bold text-gray-500">#{setIndex + 1}</span>
+                        <div key={`${exercise.localId}_${setIndex}`} className="grid grid-cols-[30px_1fr_1fr_30px] gap-2 items-center">
+                          <span className="text-xs font-mono font-bold text-muted-foreground">#{setIndex + 1}</span>
                           <input
                             type="number"
                             min="0"
                             value={set.reps}
                             onChange={(e) => updateSet(exercise.localId, setIndex, { reps: Number(e.target.value) || 0 })}
-                            className="text-xs p-2 rounded-lg border border-gray-200 bg-white"
+                            className="text-xs p-2 rounded-lg border border-border bg-input-background focus:border-primary outline-none text-center"
                           />
                           <input
                             type="number"
@@ -570,24 +574,24 @@ export const QuickLog: React.FC = () => {
                             step="0.5"
                             value={set.weight}
                             onChange={(e) => updateSet(exercise.localId, setIndex, { weight: Number(e.target.value) || 0 })}
-                            className="text-xs p-2 rounded-lg border border-gray-200 bg-white"
+                            className="text-xs p-2 rounded-lg border border-border bg-input-background focus:border-primary outline-none text-center"
                           />
                           <button
                             type="button"
                             onClick={() => removeSet(exercise.localId, setIndex)}
                             disabled={exercise.sets.length <= 1}
-                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30"
+                            className="p-1.5 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-20"
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-3 w-3" />
                           </button>
                         </div>
                       ))}
                       <button
                         type="button"
                         onClick={() => addSet(exercise.localId)}
-                        className="text-xs font-bold text-teal-700 hover:text-teal-900"
+                        className="text-xs font-bold text-primary hover:opacity-85 mt-1 block"
                       >
-                        + Add another set
+                        + Add Set
                       </button>
                     </div>
                   </div>
@@ -595,19 +599,19 @@ export const QuickLog: React.FC = () => {
               </div>
             )}
 
-            <div className="space-y-4 border-t border-gray-100 pt-4">
+            <div className="space-y-4 border-t border-border pt-4">
               <div>
-                <label className="block text-xs font-bold uppercase text-gray-700 mb-2">Mood after workout</label>
+                <label className="block text-[10px] font-bold uppercase text-muted-foreground mb-2">Mood After Workout</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {moodOptions.map((m) => (
                     <button
                       type="button"
                       key={m.value}
                       onClick={() => setMoodAfterWorkout(m.value)}
-                      className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all active:scale-[0.98] ${
+                      className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all active:scale-[0.98] ${
                         moodAfterWorkout === m.value
-                          ? 'border-teal-500 bg-teal-50/50 text-teal-950 font-extrabold'
-                          : 'border-gray-100 bg-white hover:bg-gray-50 text-gray-600'
+                          ? 'border-primary bg-primary/10 text-foreground'
+                          : 'border-border bg-muted/10 hover:bg-muted/20 text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       {m.label}
@@ -617,88 +621,89 @@ export const QuickLog: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase text-gray-700 mb-1">Optional workout notes</label>
+                <label className="block text-[10px] font-bold uppercase text-muted-foreground mb-1">Optional Notes</label>
                 <textarea
                   rows={2}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="E.g. Bench felt strong, squat form improved, keep same weight next time."
-                  className="w-full text-xs p-2.5 rounded-xl border border-gray-200 shadow-xs focus:ring-1 focus:ring-teal-500 bg-gray-50/40 outline-none"
+                  placeholder="Notes about training performance..."
+                  className="w-full text-xs p-2.5 rounded-xl border border-border bg-input-background focus:border-primary outline-none"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-xs transition-all disabled:bg-gray-400 active:scale-[0.99]"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-primary hover:brightness-110 text-primary-foreground font-bold rounded-xl shadow-xs transition-all disabled:opacity-40 active:scale-[0.99]"
               >
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                Save Real Workout Log
+                Save Workout Log
               </button>
             </div>
           </div>
 
-          <div className="lg:col-span-3 bg-gray-950 text-white p-6 rounded-2xl border border-gray-800 shadow-md h-fit space-y-4">
-            <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
-              <Zap className="h-5 w-5 text-amber-300 fill-amber-300" />
-              <h3 className="font-extrabold text-sm tracking-tight">Workout Summary</h3>
+          {/* Right panel: summary preview */}
+          <div className="lg:col-span-3 p-5 rounded-2xl border border-border bg-card h-fit space-y-4">
+            <div className="flex items-center gap-2 border-b border-border pb-3">
+              <Zap className="h-5 w-5 text-primary" />
+              <h3 className="font-extrabold text-sm tracking-tight text-foreground">Summary Preview</h3>
             </div>
 
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-xl bg-white/5 border border-white/10 p-3">
-                <p className="text-lg font-black text-white">{selectedExercises.length}</p>
-                <p className="text-[10px] text-gray-400 font-bold uppercase">Exercises</p>
+              <div className="rounded-xl bg-muted/10 border border-border p-3">
+                <p className="text-base font-black text-foreground">{selectedExercises.length}</p>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase">Moves</p>
               </div>
-              <div className="rounded-xl bg-white/5 border border-white/10 p-3">
-                <p className="text-lg font-black text-white">{totalSets}</p>
-                <p className="text-[10px] text-gray-400 font-bold uppercase">Sets</p>
+              <div className="rounded-xl bg-muted/10 border border-border p-3">
+                <p className="text-base font-black text-foreground">{totalSets}</p>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase">Sets</p>
               </div>
-              <div className="rounded-xl bg-white/5 border border-white/10 p-3">
-                <p className="text-lg font-black text-white">{durationMinutes}</p>
-                <p className="text-[10px] text-gray-400 font-bold uppercase">Minutes</p>
+              <div className="rounded-xl bg-muted/10 border border-border p-3">
+                <p className="text-base font-black text-foreground">{durationMinutes}</p>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase">Min</p>
               </div>
             </div>
 
-            <div className="space-y-3 font-mono text-xs">
+            <div className="space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-gray-400">Duration estimate:</span>
-                <span className="font-bold text-gray-200">{durationMinutes} min</span>
+                <span className="text-muted-foreground">Estimated duration:</span>
+                <span className="font-bold text-foreground">{durationMinutes} min</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400">Set detail:</span>
-                <span className="font-bold text-gray-200">{totalSets} sets</span>
+                <span className="text-muted-foreground">Set count:</span>
+                <span className="font-bold text-foreground">{totalSets} sets</span>
               </div>
-              <div className="border-t border-gray-800 pt-3 flex justify-between text-sm font-extrabold text-amber-300">
-                <span>EST. XP:</span>
+              <div className="border-t border-border pt-3 flex justify-between text-xs font-bold text-primary">
+                <span>Estimated XP:</span>
                 <span>+{calculateXpPreview()} XP</span>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 space-y-2">
-              <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400">
-                Save as custom workout
+            <div className="rounded-2xl border border-border bg-muted/5 p-3 space-y-2">
+              <label className="block text-[9px] font-black uppercase tracking-wider text-muted-foreground">
+                Save as custom template
               </label>
               <input
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
-                placeholder="Push Day A, Leg Day, Morning Run..."
-                className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white placeholder:text-gray-500 outline-none focus:border-amber-300"
+                placeholder="Template name..."
+                className="w-full rounded-xl border border-border bg-input-background px-3 py-2 text-xs text-foreground outline-none focus:border-primary"
               />
               <button
                 type="button"
                 onClick={handleSaveTemplate}
                 disabled={templateSaving || selectedExercises.length === 0}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-white text-gray-950 py-2.5 text-xs font-extrabold hover:bg-amber-100 transition-colors disabled:opacity-40 disabled:hover:bg-white active:scale-[0.99]"
+                className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-foreground text-background py-2 text-xs font-black hover:brightness-90 transition-all disabled:opacity-40 active:scale-[0.99]"
               >
                 {templateSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
                 Save Template
               </button>
             </div>
 
-            <div className="p-3 bg-white/5 border border-white/10 rounded-xl rounded-b-lg">
-              <p className="text-[11px] text-gray-400 leading-relaxed font-sans">
-                <Trophy className="inline h-3.5 w-3.5 mr-1 text-amber-300" />
-                This preview is an estimate. Saved workouts use the server-calculated XP.
+            <div className="p-3 bg-muted/10 rounded-xl">
+              <p className="text-[9px] text-muted-foreground leading-normal flex items-start gap-1">
+                <Trophy className="h-3 w-3 text-primary flex-shrink-0 mt-0.5" />
+                <span>Saved workouts use the server-calculated XP system.</span>
               </p>
             </div>
           </div>
