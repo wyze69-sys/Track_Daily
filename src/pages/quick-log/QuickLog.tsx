@@ -50,6 +50,10 @@ export const QuickLog: React.FC = () => {
     () => selectedExercises.reduce((sum, ex) => sum + Number(ex.duration || 0), 0),
     [selectedExercises]
   );
+  const totalDistanceKm = useMemo(
+    () => selectedExercises.reduce((sum, ex) => sum + Number(ex.distance || 0), 0),
+    [selectedExercises]
+  );
   const totalSets = useMemo(
     () => selectedExercises.reduce((sum, ex) => {
       const trackingType = ex.trackingType || getTrackingType(ex);
@@ -276,7 +280,7 @@ export const QuickLog: React.FC = () => {
           : [],
         distance: trackingType === 'duration_distance' ? (ex.distance !== undefined ? Number(ex.distance) : undefined) : undefined,
         pace: trackingType === 'duration_distance' ? ex.pace : undefined,
-        calories: trackingType === 'duration_distance' ? (ex.calories !== undefined ? Number(ex.calories) : undefined) : undefined,
+        calories: undefined,
         focusArea: trackingType === 'duration_focus' ? ex.focusArea : undefined,
         difficulty: trackingType === 'duration_focus' ? ex.difficulty : undefined,
         intensity: trackingType === 'duration_intensity' ? ex.intensity : undefined,
@@ -330,9 +334,19 @@ export const QuickLog: React.FC = () => {
     const newErrors: { [key: string]: string } = {};
     selectedExercises.forEach((ex) => {
       if (!ex.exerciseName.trim()) newErrors[`name_${ex.localId}`] = 'Exercise name is required';
-      if (ex.duration <= 0) newErrors[`duration_${ex.localId}`] = 'Duration must be greater than 0';
 
       const trackingType = ex.trackingType || getTrackingType(ex);
+      if (trackingType === 'duration_distance') {
+        const hasTime = Number(ex.duration || 0) > 0;
+        const hasDistance = Number(ex.distance || 0) > 0;
+        if (!hasTime && !hasDistance) {
+          newErrors[`duration_${ex.localId}`] = 'Enter time or distance for cardio';
+          newErrors[`distance_${ex.localId}`] = 'Enter distance or time for cardio';
+        }
+      } else if (ex.duration <= 0) {
+        newErrors[`duration_${ex.localId}`] = 'Duration must be greater than 0';
+      }
+
       if (trackingType === 'sets_reps_weight') {
         if (ex.sets.length === 0) newErrors[`sets_${ex.localId}`] = 'At least one set is required';
         ex.sets.forEach((s, sIdx) => {
@@ -352,7 +366,7 @@ export const QuickLog: React.FC = () => {
     try {
       await workoutService.quickLog({
         workoutType,
-        durationMinutes: Math.max(durationMinutes, 1),
+        durationMinutes: durationMinutes,
         moodAfterWorkout,
         note,
         templateId: selectedTemplateId,
@@ -421,7 +435,7 @@ export const QuickLog: React.FC = () => {
                 <h2 className="text-sm font-black text-foreground">Workout Details</h2>
               </div>
               <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                {durationMinutes} min
+                {durationMinutes} min{totalDistanceKm > 0 ? ` · ${totalDistanceKm.toFixed(1)} km` : ''}
               </span>
             </div>
 

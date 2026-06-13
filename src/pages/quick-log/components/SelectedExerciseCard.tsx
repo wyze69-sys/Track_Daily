@@ -26,6 +26,8 @@ export const SelectedExerciseCard: React.FC<SelectedExerciseCardProps> = ({
   onRemoveExercise,
   onDuplicateLastSet
 }) => {
+  const isCardio = exercise.trackingType === 'duration_distance' || exercise.categoryName === 'Cardio';
+
   return (
     <div className="rounded-2xl border border-border bg-muted/10 p-4 space-y-3 transition-all">
       {/* Exercise Header Row */}
@@ -48,10 +50,14 @@ export const SelectedExerciseCard: React.FC<SelectedExerciseCardProps> = ({
             )}
           </div>
           <div>
+            <label className="mb-1 block text-[10px] font-bold uppercase text-muted-foreground">
+              {isCardio ? 'Time (min)' : 'Duration (min)'}
+            </label>
             <div className="flex items-center gap-2">
               <input
                 type="number"
-                min="1"
+                min={isCardio ? '0' : '1'}
+                placeholder={isCardio ? 'Optional' : undefined}
                 value={exercise.duration}
                 onChange={(e) => onUpdateExercise(exercise.localId, { duration: Number(e.target.value) || 0 })}
                 className={`w-full text-xs p-2 rounded-lg border bg-input-background focus:border-primary outline-none ${

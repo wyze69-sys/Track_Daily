@@ -52,10 +52,15 @@ export function estimateWorkoutCalories(workout: Pick<Workout, 'workoutType' | '
       const enteredCalories = toPositiveNumber(exercise?.calories) || toPositiveNumber(exercise?.caloriesBurned);
       if (enteredCalories) return sum + enteredCalories;
 
+      const distanceKm = toPositiveNumber(exercise?.distance);
+      const trackingType = inferTrackingType(exercise, workout.workoutType);
+      if (trackingType === 'duration_distance' && distanceKm) {
+        return sum + distanceKm * weightKg;
+      }
+
       const duration = toPositiveNumber(exercise?.duration) || toPositiveNumber(workout.durationMinutes);
       if (!duration) return sum;
 
-      const trackingType = inferTrackingType(exercise, workout.workoutType);
       const met = TRACKING_MET[trackingType] || WORKOUT_TYPE_MET[String(workout.workoutType || '').toLowerCase()] || 5;
       return sum + ((met * 3.5 * weightKg) / 200) * duration;
     }, 0);

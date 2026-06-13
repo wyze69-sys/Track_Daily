@@ -37,8 +37,10 @@ router.get('/last', authMiddleware, (req: AuthenticatedRequest, res) => {
 
 router.post('/quick-log', authMiddleware, (req: AuthenticatedRequest, res) => {
   const { workoutType, durationMinutes, moodAfterWorkout, note, templateId, exercises } = req.body;
-  if (!workoutType || !durationMinutes) {
-    res.status(400).json({ error: 'workout_type and duration_minutes are mandatory' });
+  const hasDuration = durationMinutes !== undefined && durationMinutes !== null && Number(durationMinutes) >= 0;
+  const hasExerciseDistance = Array.isArray(exercises) && exercises.some((ex) => Number(ex?.distance || 0) > 0);
+  if (!workoutType || (!hasDuration && !hasExerciseDistance)) {
+    res.status(400).json({ error: 'workout_type and duration_minutes or exercise distance are mandatory' });
     return;
   }
   const result = processWorkoutLogging(
@@ -77,8 +79,10 @@ router.post('/repeat-last', authMiddleware, (req: AuthenticatedRequest, res) => 
 
 router.post('/', authMiddleware, (req: AuthenticatedRequest, res) => {
   const { workoutType, durationMinutes, moodAfterWorkout, note, templateId, exercises } = req.body;
-  if (!workoutType || !durationMinutes) {
-    res.status(400).json({ error: 'Workout type and duration in minutes are required' });
+  const hasDuration = durationMinutes !== undefined && durationMinutes !== null && Number(durationMinutes) >= 0;
+  const hasExerciseDistance = Array.isArray(exercises) && exercises.some((ex) => Number(ex?.distance || 0) > 0);
+  if (!workoutType || (!hasDuration && !hasExerciseDistance)) {
+    res.status(400).json({ error: 'Workout type and duration in minutes or exercise distance are required' });
     return;
   }
   const result = processWorkoutLogging(
