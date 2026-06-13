@@ -340,11 +340,19 @@ export const QuickLog: React.FC = () => {
         const hasTime = Number(ex.duration || 0) > 0;
         const hasDistance = Number(ex.distance || 0) > 0;
         if (!hasTime && !hasDistance) {
-          newErrors[`duration_${ex.localId}`] = 'Enter time or distance for cardio';
-          newErrors[`distance_${ex.localId}`] = 'Enter distance or time for cardio';
+          newErrors[`duration_${ex.localId}`] = 'Enter time or distance';
+          newErrors[`distance_${ex.localId}`] = 'Enter distance or time';
         }
-      } else if (ex.duration <= 0) {
-        newErrors[`duration_${ex.localId}`] = 'Duration must be greater than 0';
+      } else if (trackingType === 'duration_focus' || trackingType === 'duration_intensity') {
+        if (!ex.duration || Number(ex.duration) <= 0) {
+          newErrors[`duration_${ex.localId}`] = 'Duration is required';
+        }
+      } else if (trackingType === 'sets_reps_weight') {
+        // Duration is optional, we show a warning in the UI but don't hard block.
+      } else {
+        if (!ex.duration || Number(ex.duration) <= 0) {
+          newErrors[`duration_${ex.localId}`] = 'Duration must be greater than 0';
+        }
       }
 
       if (trackingType === 'sets_reps_weight') {

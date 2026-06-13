@@ -45,6 +45,12 @@ export interface ActivityLibraryItem {
   isActive: boolean;
   source: 'default' | 'admin' | 'custom';
   createdByUserId?: string | null;
+  defaultMet?: number;
+  distanceMultiplier?: number;
+  bodyweightFactor?: number;
+  calorieMethod?: 'met_duration' | 'distance_weight' | 'strength_volume_adjusted' | 'met_duration_intensity' | string;
+  intensityLevel?: 'low' | 'moderate' | 'high' | string;
+  estimateConfidence?: 'exact' | 'close_match' | 'fallback' | string;
 }
 
 export interface ExerciseCategory {
@@ -66,6 +72,7 @@ export interface Workout {
   templateId: string | null;
   xpEarned: number;
   caloriesBurned?: number;
+  calorieEstimateSource?: string;
   createdAt: string;
   exercises?: any[];
 }
@@ -208,6 +215,33 @@ export function readDatabase(): DatabaseSchema {
       if (!dbState.activityLibrary || dbState.activityLibrary.length === 0) {
         dbState.activityLibrary = JSON.parse(JSON.stringify(initialActivities));
         writeDatabase(dbState);
+      } else {
+        // Automatically sync calorie metadata from seed JSON into existing default activities in dbState
+        let updatedAny = false;
+        dbState.activityLibrary = dbState.activityLibrary.map(item => {
+          if (item.source === 'default') {
+            const seedItem = initialActivities.find(s => s.id === item.id);
+            if (seedItem) {
+              const merged = { ...item };
+              let changed = false;
+              const calorieFields = ['defaultMet', 'distanceMultiplier', 'bodyweightFactor', 'calorieMethod', 'intensityLevel', 'estimateConfidence'] as const;
+              for (const field of calorieFields) {
+                if (seedItem[field] !== merged[field]) {
+                  (merged as any)[field] = seedItem[field];
+                  changed = true;
+                }
+              }
+              if (changed) {
+                updatedAny = true;
+              }
+              return merged;
+            }
+          }
+          return item;
+        });
+        if (updatedAny) {
+          writeDatabase(dbState);
+        }
       }
     } else {
       // Create seed

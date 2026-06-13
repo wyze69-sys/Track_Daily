@@ -14,6 +14,12 @@ interface ActivityEditorModalProps {
     tags: string[];
     difficulty?: string;
     isActive?: boolean;
+    defaultMet?: number;
+    distanceMultiplier?: number;
+    bodyweightFactor?: number;
+    calorieMethod?: string;
+    intensityLevel?: string;
+    estimateConfidence?: string;
   }) => Promise<void>;
 }
 
@@ -30,6 +36,12 @@ export const ActivityEditorModal: React.FC<ActivityEditorModalProps> = ({
   const [tagsInput, setTagsInput] = useState('');
   const [difficulty, setDifficulty] = useState('beginner');
   const [isActive, setIsActive] = useState(true);
+  const [defaultMet, setDefaultMet] = useState('');
+  const [distanceMultiplier, setDistanceMultiplier] = useState('');
+  const [bodyweightFactor, setBodyweightFactor] = useState('');
+  const [calorieMethod, setCalorieMethod] = useState('');
+  const [intensityLevel, setIntensityLevel] = useState('');
+  const [estimateConfidence, setEstimateConfidence] = useState('');
   
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +55,12 @@ export const ActivityEditorModal: React.FC<ActivityEditorModalProps> = ({
       setTagsInput(editingActivity.tags ? editingActivity.tags.join(', ') : '');
       setDifficulty(editingActivity.difficulty || 'beginner');
       setIsActive(editingActivity.isActive !== false);
+      setDefaultMet(editingActivity.defaultMet !== undefined ? String(editingActivity.defaultMet) : '');
+      setDistanceMultiplier(editingActivity.distanceMultiplier !== undefined ? String(editingActivity.distanceMultiplier) : '');
+      setBodyweightFactor(editingActivity.bodyweightFactor !== undefined ? String(editingActivity.bodyweightFactor) : '');
+      setCalorieMethod(editingActivity.calorieMethod || '');
+      setIntensityLevel(editingActivity.intensityLevel || '');
+      setEstimateConfidence(editingActivity.estimateConfidence || '');
     } else {
       setName('');
       setCategoryId(categories.length > 0 ? categories[0].id : '');
@@ -50,6 +68,12 @@ export const ActivityEditorModal: React.FC<ActivityEditorModalProps> = ({
       setTagsInput('');
       setDifficulty('beginner');
       setIsActive(true);
+      setDefaultMet('');
+      setDistanceMultiplier('');
+      setBodyweightFactor('');
+      setCalorieMethod('');
+      setIntensityLevel('');
+      setEstimateConfidence('');
     }
     setError(null);
   }, [editingActivity, categories, isOpen]);
@@ -78,6 +102,34 @@ export const ActivityEditorModal: React.FC<ActivityEditorModalProps> = ({
       return;
     }
 
+    // Input Validation
+    let parsedDefaultMet: number | undefined = undefined;
+    if (defaultMet !== '') {
+      parsedDefaultMet = Number(defaultMet);
+      if (isNaN(parsedDefaultMet) || parsedDefaultMet < 0) {
+        setError('MET value must be a number greater than or equal to 0.');
+        return;
+      }
+    }
+
+    let parsedDistanceMultiplier: number | undefined = undefined;
+    if (distanceMultiplier !== '') {
+      parsedDistanceMultiplier = Number(distanceMultiplier);
+      if (isNaN(parsedDistanceMultiplier) || parsedDistanceMultiplier < 0) {
+        setError('Distance Multiplier must be a number greater than or equal to 0.');
+        return;
+      }
+    }
+
+    let parsedBodyweightFactor: number | undefined = undefined;
+    if (bodyweightFactor !== '') {
+      parsedBodyweightFactor = Number(bodyweightFactor);
+      if (isNaN(parsedBodyweightFactor) || parsedBodyweightFactor < 0) {
+        setError('Bodyweight Factor must be a number greater than or equal to 0.');
+        return;
+      }
+    }
+
     const tags = tagsInput
       .split(',')
       .map(t => t.trim())
@@ -91,7 +143,13 @@ export const ActivityEditorModal: React.FC<ActivityEditorModalProps> = ({
         trackingType,
         tags,
         difficulty: difficulty || undefined,
-        isActive
+        isActive,
+        defaultMet: parsedDefaultMet,
+        distanceMultiplier: parsedDistanceMultiplier,
+        bodyweightFactor: parsedBodyweightFactor,
+        calorieMethod: calorieMethod || undefined,
+        intensityLevel: intensityLevel || undefined,
+        estimateConfidence: estimateConfidence || undefined
       });
       onClose();
     } catch (err: any) {
@@ -191,6 +249,94 @@ export const ActivityEditorModal: React.FC<ActivityEditorModalProps> = ({
                 placeholder="Chest, Barbell, Upper"
                 className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-input-background focus:border-primary outline-none text-foreground"
               />
+            </div>
+          </div>
+
+          {/* Calorie Metadata Section */}
+          <div className="border-t border-border pt-4 space-y-4">
+            <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-foreground">Calorie Metadata (Optional)</h3>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold uppercase text-muted-foreground">Default MET</label>
+                <input 
+                  type="number"
+                  step="any"
+                  value={defaultMet}
+                  onChange={(e) => setDefaultMet(e.target.value)}
+                  placeholder="e.g. 7.5"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-input-background focus:border-primary outline-none text-foreground"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold uppercase text-muted-foreground">Calorie Method</label>
+                <select 
+                  value={calorieMethod}
+                  onChange={(e) => setCalorieMethod(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-input-background focus:border-primary outline-none text-foreground"
+                >
+                  <option value="">None / Default category MET</option>
+                  <option value="met_duration">MET * Duration</option>
+                  <option value="distance_weight">Distance * Weight</option>
+                  <option value="strength_volume_adjusted">Strength Volume Adjusted</option>
+                  <option value="met_duration_intensity">MET * Duration * Intensity</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold uppercase text-muted-foreground">Dist Mult</label>
+                <input 
+                  type="number"
+                  step="any"
+                  value={distanceMultiplier}
+                  onChange={(e) => setDistanceMultiplier(e.target.value)}
+                  placeholder="e.g. 1.0"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-input-background focus:border-primary outline-none text-foreground"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold uppercase text-muted-foreground">BW Factor</label>
+                <input 
+                  type="number"
+                  step="any"
+                  value={bodyweightFactor}
+                  onChange={(e) => setBodyweightFactor(e.target.value)}
+                  placeholder="e.g. 0.65"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-input-background focus:border-primary outline-none text-foreground"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[10px] font-bold uppercase text-muted-foreground">Intensity</label>
+                <select 
+                  value={intensityLevel}
+                  onChange={(e) => setIntensityLevel(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-input-background focus:border-primary outline-none text-foreground"
+                >
+                  <option value="">None</option>
+                  <option value="low">Low</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-[10px] font-bold uppercase text-muted-foreground">Estimate Confidence</label>
+              <select 
+                value={estimateConfidence}
+                onChange={(e) => setEstimateConfidence(e.target.value)}
+                className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-input-background focus:border-primary outline-none text-foreground"
+              >
+                <option value="">None / Fallback</option>
+                <option value="exact">Exact</option>
+                <option value="close_match">Close Match</option>
+                <option value="fallback">Fallback</option>
+              </select>
             </div>
           </div>
 

@@ -359,6 +359,11 @@ export const Profile: React.FC = () => {
                         className="block w-full px-4 py-3 bg-muted border border-border rounded-xl text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-muted-foreground/40 font-medium"
                         placeholder="e.g. 70"
                       />
+                      {weight === '' && (
+                        <p className="text-[10px] text-yellow-500 mt-1.5 font-semibold">
+                          Add your weight so logweb can estimate calories more accurately.
+                        </p>
+                      )}
                     </div>
 
                     <div>

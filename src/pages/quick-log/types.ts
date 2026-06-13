@@ -20,4 +20,10 @@ export type DraftExercise = {
   intensity?: string;
   notes?: string;
   restTime?: number;
+  defaultMet?: number;
+  distanceMultiplier?: number;
+  bodyweightFactor?: number;
+  calorieMethod?: string;
+  intensityLevel?: string;
+  estimateConfidence?: string;
 };

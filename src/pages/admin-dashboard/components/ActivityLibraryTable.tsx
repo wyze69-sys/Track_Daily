@@ -128,6 +128,7 @@ export const ActivityLibraryTable: React.FC<ActivityLibraryTableProps> = ({
               <th className="p-4">Tags</th>
               <th className="p-4">Difficulty</th>
               <th className="p-4">Source</th>
+              <th className="p-4">Calorie Config</th>
               <th className="p-4">Status</th>
               <th className="p-4 text-right">Actions</th>
             </tr>
@@ -135,7 +136,7 @@ export const ActivityLibraryTable: React.FC<ActivityLibraryTableProps> = ({
           <tbody className="divide-y divide-border/60">
             {loading ? (
               <tr>
-                <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                <td colSpan={8} className="p-8 text-center text-muted-foreground">
                   <div className="flex items-center justify-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                     Loading activities...
@@ -144,7 +145,7 @@ export const ActivityLibraryTable: React.FC<ActivityLibraryTableProps> = ({
               </tr>
             ) : activities.length === 0 ? (
               <tr>
-                <td colSpan={7} className="p-12 text-center text-muted-foreground">
+                <td colSpan={8} className="p-12 text-center text-muted-foreground">
                   No activities found matching filters.
                 </td>
               </tr>
@@ -213,6 +214,27 @@ export const ActivityLibraryTable: React.FC<ActivityLibraryTableProps> = ({
                           <Shield size={10} />
                           Default
                         </span>
+                      )}
+                    </td>
+
+                    {/* Calorie Config */}
+                    <td className="p-4 text-muted-foreground font-medium">
+                      {activity.calorieMethod ? (
+                        <div className="space-y-0.5 text-[11px]">
+                          <div><span className="font-bold text-foreground">MET:</span> {activity.defaultMet !== undefined ? activity.defaultMet : '—'}</div>
+                          <div><span className="font-bold text-foreground">Method:</span> <span className="font-mono text-[9px] bg-muted/20 px-1 py-0.5 rounded text-foreground">{activity.calorieMethod}</span></div>
+                          {activity.distanceMultiplier !== undefined && (
+                            <div><span className="font-bold text-foreground">Dist Mult:</span> {activity.distanceMultiplier}</div>
+                          )}
+                          {activity.bodyweightFactor !== undefined && (
+                            <div><span className="font-bold text-foreground">BW Factor:</span> {activity.bodyweightFactor}</div>
+                          )}
+                          {activity.intensityLevel && (
+                            <div><span className="font-bold text-foreground">Intensity:</span> {activity.intensityLevel}</div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground/40 text-[10px]">—</span>
                       )}
                     </td>
 

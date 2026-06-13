@@ -156,6 +156,10 @@ export const StrengthTrackingFields: React.FC<StrengthTrackingFieldsProps> = ({
           <span className="text-[10px] font-bold text-muted-foreground">sec</span>
         </div>
       </div>
+
+      <div className="rounded-lg border border-border bg-muted/10 p-3 text-[10px] leading-relaxed text-muted-foreground mt-2">
+        Calories are estimated from activity type, duration, body weight, and training volume.
+      </div>
     </div>
   );
 };

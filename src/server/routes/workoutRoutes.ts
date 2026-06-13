@@ -1,6 +1,7 @@
 import express from 'express';
 import { readDatabase, writeDatabase } from '../../db/db';
 import { authMiddleware, AuthenticatedRequest } from '../middleware/auth';
+// Workout endpoints that leverage server-side workoutEngine to estimate caloriesBurned and record calorieEstimateSource
 import { processWorkoutLogging, withEstimatedCalories } from '../services/workoutEngine';
 
 const router = express.Router();
@@ -110,7 +111,9 @@ router.put('/:id', authMiddleware, (req: AuthenticatedRequest, res) => {
     durationMinutes: durationMinutes ? parseInt(durationMinutes) : db.workouts[index].durationMinutes,
     moodAfterWorkout: moodAfterWorkout || db.workouts[index].moodAfterWorkout,
     note: note !== undefined ? note : db.workouts[index].note,
-    exercises: exercises !== undefined ? exercises : db.workouts[index].exercises
+    exercises: exercises !== undefined ? exercises : db.workouts[index].exercises,
+    caloriesBurned: undefined,
+    calorieEstimateSource: undefined
   };
   db.workouts[index] = withEstimatedCalories(db.workouts[index], profile);
   writeDatabase(db);

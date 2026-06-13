@@ -12,6 +12,12 @@ export interface ActivityLibraryItem {
   isActive: boolean;
   source: 'default' | 'admin' | 'custom';
   createdByUserId?: string | null;
+  defaultMet?: number;
+  distanceMultiplier?: number;
+  bodyweightFactor?: number;
+  calorieMethod?: 'met_duration' | 'distance_weight' | 'strength_volume_adjusted' | 'met_duration_intensity' | string;
+  intensityLevel?: 'low' | 'moderate' | 'high' | string;
+  estimateConfidence?: 'exact' | 'close_match' | 'fallback' | string;
 }
 
 export const activityLibraryService = {
@@ -79,6 +85,12 @@ export const activityLibraryService = {
       tags: string[];
       difficulty?: string;
       isActive?: boolean;
+      defaultMet?: number;
+      distanceMultiplier?: number;
+      bodyweightFactor?: number;
+      calorieMethod?: string;
+      intensityLevel?: string;
+      estimateConfidence?: string;
     }): Promise<ActivityLibraryItem> {
       return request<ActivityLibraryItem>(`${API_BASE}/admin/activities`, {
         method: 'POST',
@@ -93,6 +105,12 @@ export const activityLibraryService = {
       tags: string[];
       difficulty?: string;
       isActive?: boolean;
+      defaultMet?: number;
+      distanceMultiplier?: number;
+      bodyweightFactor?: number;
+      calorieMethod?: string;
+      intensityLevel?: string;
+      estimateConfidence?: string;
     }): Promise<ActivityLibraryItem> {
       return request<ActivityLibraryItem>(`${API_BASE}/admin/activities/${id}`, {
         method: 'PUT',

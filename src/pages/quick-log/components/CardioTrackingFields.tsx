@@ -21,6 +21,8 @@ export const CardioTrackingFields: React.FC<CardioTrackingFieldsProps> = ({
   onUpdateExercise
 }) => {
   const estimatedPace = formatEstimatedPace(exercise.duration, exercise.distance);
+  const hasTime = !!exercise.duration && exercise.duration > 0;
+  const hasDistance = !!exercise.distance && exercise.distance > 0;
 
   return (
     <div className="space-y-3">
@@ -49,13 +51,19 @@ export const CardioTrackingFields: React.FC<CardioTrackingFieldsProps> = ({
         <div className="space-y-1">
           <label className="block text-[10px] uppercase font-bold text-muted-foreground">Pace</label>
           <div className="w-full text-xs p-2 rounded-lg border border-border bg-muted/20 text-muted-foreground min-h-[34px] flex items-center">
-            {estimatedPace || 'Auto when time + distance are entered'}
+            {estimatedPace ? `Pace: ${estimatedPace}` : 'Auto when time + distance are entered'}
           </div>
         </div>
       </div>
 
       <div className="rounded-lg border border-border bg-muted/10 p-3 text-[10px] leading-relaxed text-muted-foreground">
-        Enter what the user actually knows. Time only is okay. Distance only is okay. If both are entered, pace is calculated automatically. Calories are estimated after saving from profile weight + activity data, so new users do not need to know calories.
+        {hasTime && !hasDistance ? (
+          "Calories will be estimated from activity type, time, and your profile weight."
+        ) : hasDistance && !hasTime ? (
+          "Calories will be estimated from distance and your profile weight."
+        ) : (
+          "Enter what the user actually knows. Time only is okay. Distance only is okay. If both are entered, pace is calculated automatically. Calories are estimated after saving from profile weight + activity data, so new users do not need to know calories."
+        )}
       </div>
     </div>
   );

@@ -45,7 +45,9 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res) => {
       currentUserId: req.user!.id
     });
 
-    // Merge new and legacy fields to support both APIs seamlessly
+    // Merge new and legacy fields to support both APIs seamlessly.
+    // Calorie metadata fields (defaultMet, distanceMultiplier, bodyweightFactor, calorieMethod, intensityLevel)
+    // are automatically propagated via spreading ...item.
     const mergedItems = result.items.map(item => ({
       ...item,
       ...mapToLegacy(item)

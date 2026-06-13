@@ -61,6 +61,22 @@ export const WorkoutTimelineCard: React.FC<WorkoutTimelineCardProps> = ({ workou
               </span>
             </div>
 
+            {/* Calorie Estimates */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs py-0.5">
+              <span className="font-bold text-foreground">
+                Estimated calories: <span className="text-primary font-mono">{w.caloriesBurned || 0} kcal</span>
+              </span>
+              {w.calorieEstimateSource === 'missing user weight' ? (
+                <span className="text-[10px] text-yellow-500 font-semibold">
+                  (Set profile weight to estimate calories)
+                </span>
+              ) : (
+                <span className="text-[10px] text-muted-foreground">
+                  Based on: {w.calorieEstimateSource || 'activity type, duration, profile weight'}
+                </span>
+              )}
+            </div>
+
             {w.note && (
               <p className="text-xs text-muted-foreground bg-muted/10 px-3 py-2 rounded-xl border-l-2 border-primary">
                 {w.note}

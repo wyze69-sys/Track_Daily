@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Save, Trophy, Loader2 } from 'lucide-react';
+import { Activity, Save, Trophy, Loader2, Info } from 'lucide-react';
 
 interface WorkoutSummaryPanelProps {
   exerciseCount: number;
@@ -83,10 +83,14 @@ export const WorkoutSummaryPanel: React.FC<WorkoutSummaryPanelProps> = ({
         </button>
       </div>
 
-      <div className="p-3 bg-muted/10 rounded-xl">
+      <div className="p-3 bg-muted/10 rounded-xl space-y-1.5">
         <p className="text-[9px] text-muted-foreground leading-normal flex items-start gap-1">
           <Trophy className="h-3 w-3 text-primary flex-shrink-0 mt-0.5" />
           <span>Saved workouts use the server-calculated XP system.</span>
+        </p>
+        <p className="text-[9px] text-muted-foreground leading-normal flex items-start gap-1">
+          <Info className="h-3 w-3 text-primary flex-shrink-0 mt-0.5" />
+          <span>Estimated calories will appear after saving.</span>
         </p>
       </div>
     </div>

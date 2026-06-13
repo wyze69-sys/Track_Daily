@@ -6,6 +6,7 @@ import {
   gamificationService,
   weeklyPlanService,
   workoutService,
+  authService,
   Announcement,
   GamificationSummary,
   WeeklyPlan,
@@ -48,22 +49,25 @@ export const StudentDashboard: React.FC = () => {
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan | null>(null);
   const [gamification, setGamification] = useState<GamificationSummary | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchDashboardData = async () => {
     try {
       setRefreshing(true);
-      const [workoutsList, plan, summary, anns] = await Promise.all([
+      const [workoutsList, plan, summary, anns, meData] = await Promise.all([
         workoutService.getRecent(),
         weeklyPlanService.get(),
         gamificationService.getSummary(),
-        announcementService.getAll()
+        announcementService.getAll(),
+        authService.me()
       ]);
       setWorkouts(workoutsList);
       setWeeklyPlan(plan);
       setGamification(summary);
       setAnnouncements(anns.slice(0, 2));
+      setProfile(meData?.profile || meData);
     } catch (err) {
       console.error('Failed to fetch student dashboard data', err);
     } finally {
@@ -183,8 +187,29 @@ export const StudentDashboard: React.FC = () => {
 
         {/* KPIs Grid */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {/* Recent Energy Card */}
+          <div className="rounded-xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Recent energy</span>
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: 'rgba(163, 230, 53, 0.08)' }}>
+                <Flame size={15} color="var(--primary)" />
+              </div>
+            </div>
+            {workouts.length > 0 && !profile?.weight && !profile?.weightKg ? (
+              <div className="flex items-baseline gap-1 mt-1">
+                <span className="text-xs font-bold text-yellow-500 leading-normal">
+                  Set profile weight to estimate calories.
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-black text-foreground">{totalCalories || 0}</span>
+                <span className="text-xs text-muted-foreground">kcal</span>
+              </div>
+            )}
+          </div>
+
           {[
-            { label: 'Recent energy', value: totalCalories || 0, unit: 'kcal', icon: Flame, color: 'var(--primary)', bg: 'rgba(163, 230, 53, 0.08)' },
             { label: 'Active time', value: totalMinutes || 0, unit: 'min', icon: Clock, color: 'var(--primary)', bg: 'rgba(163, 230, 53, 0.08)' },
             { label: 'Tracked sets', value: totalSets || 0, unit: 'sets', icon: Dumbbell, color: 'var(--primary)', bg: 'rgba(163, 230, 53, 0.08)' },
             { label: 'Weekly target', value: weeklyPlan?.targetCount || 0, unit: 'weekly', icon: Calendar, color: 'var(--primary)', bg: 'rgba(163, 230, 53, 0.08)' }

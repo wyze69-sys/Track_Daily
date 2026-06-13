@@ -1,7 +1,7 @@
 import React from 'react';
 import { Trash2 } from 'lucide-react';
 import { DraftExercise, DraftSet } from '../types';
-import { TrackingFields } from './TrackingFields';
+import { TrackingFields, getTrackingType } from './TrackingFields';
 
 interface SelectedExerciseCardProps {
   exercise: DraftExercise;
@@ -68,6 +68,11 @@ export const SelectedExerciseCard: React.FC<SelectedExerciseCardProps> = ({
             </div>
             {validationErrors[`duration_${exercise.localId}`] && (
               <p className="text-[10px] text-destructive mt-1 font-semibold">{validationErrors[`duration_${exercise.localId}`]}</p>
+            )}
+            {getTrackingType(exercise) === 'sets_reps_weight' && (!exercise.duration || exercise.duration <= 0) && (
+              <p className="text-[9px] text-yellow-500 mt-1 font-semibold">
+                ⚠️ No duration: calories estimated from sets
+              </p>
             )}
           </div>
         </div>

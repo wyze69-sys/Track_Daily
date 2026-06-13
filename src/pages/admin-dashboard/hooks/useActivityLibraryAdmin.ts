@@ -67,6 +67,12 @@ export function useActivityLibraryAdmin() {
     tags: string[];
     difficulty?: string;
     isActive?: boolean;
+    defaultMet?: number;
+    distanceMultiplier?: number;
+    bodyweightFactor?: number;
+    calorieMethod?: string;
+    intensityLevel?: string;
+    estimateConfidence?: string;
   }) => {
     try {
       setError(null);

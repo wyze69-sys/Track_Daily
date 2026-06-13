@@ -52,6 +52,10 @@ export const DurationFocusFields: React.FC<DurationFocusFieldsProps> = ({
           className="w-full text-xs p-2 rounded-lg border border-border bg-input-background focus:border-primary outline-none text-foreground resize-none"
         />
       </div>
+
+      <div className="rounded-lg border border-border bg-muted/10 p-3 text-[10px] leading-relaxed text-muted-foreground mt-2">
+        Calories are estimated from duration, activity type, and difficulty.
+      </div>
     </div>
   );
 };
