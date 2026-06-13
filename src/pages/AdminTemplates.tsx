@@ -188,7 +188,7 @@ export const AdminTemplates: React.FC = () => {
                     <div>
                       <h4 className="text-xs font-bold text-slate-900">{tpl.name}</h4>
                       <div className="flex gap-2 items-center text-[10px] text-gray-400 mt-1 uppercase font-semibold">
-                        <span className="text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded-md border border-purple-100">{tpl.category}</span>
+                        <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded-md border border-primary/20">{tpl.category}</span>
                         <span>•</span>
                         <span>{tpl.durationMinutes} min Duration</span>
                       </div>

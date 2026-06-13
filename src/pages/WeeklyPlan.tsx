@@ -170,7 +170,7 @@ export const WeeklyPlan: React.FC = () => {
                           <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">{chg.description}</p>
                           <div className="flex flex-wrap items-center gap-3 mt-3 text-[9px] font-bold">
                             <span className="text-primary font-mono bg-primary/10 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                              <Zap className="h-2.5 w-2.5" />
+                              <Award className="h-2.5 w-2.5" />
                               +{chg.xpReward} XP Reward
                             </span>
                             <span className="text-muted-foreground font-mono">End: {chg.endDate}</span>

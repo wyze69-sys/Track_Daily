@@ -7,7 +7,7 @@ import { MacroBreakdownCard } from './components/MacroBreakdownCard';
 import { MealPlanCard } from './components/MealPlanCard';
 import { FoodSearchPanel } from './components/FoodSearchPanel';
 import { InsightExplanation } from './components/InsightExplanation';
-import { Sparkles, AlertCircle, Loader2 } from 'lucide-react';
+import { LineChart, AlertCircle, Loader2 } from 'lucide-react';
 
 export const NutritionInsights: React.FC = () => {
   const {
@@ -53,8 +53,8 @@ export const NutritionInsights: React.FC = () => {
           style={{ background: 'var(--card)' }}
         >
           <h1 className="text-lg font-black tracking-tight text-foreground flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            AI Insights
+            <LineChart className="h-5 w-5 text-primary" />
+            Nutrition Insights
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
             Estimated nutrition targets and meal planning based on your profile.

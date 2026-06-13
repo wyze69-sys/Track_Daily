@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../services/api';
 import { PageContainer } from '../components/layout/PageContainer';
-import { Users, Trophy, Flame, Zap, Loader2, ArrowLeft } from 'lucide-react';
+import { Users, Trophy, Award, Calendar, Loader2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const AdminUsers: React.FC = () => {
@@ -89,14 +89,14 @@ export const AdminUsers: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-4 text-slate-700">
-                        <span className="flex items-center gap-1 font-mono">
-                          <Zap className="h-3.5 w-3.5 text-purple-400 fill-purple-50" />
+                        <span className="flex items-center gap-1 font-mono text-primary">
+                          <Award className="h-3.5 w-3.5" />
                           {u.xp} XP
                         </span>
                       </td>
                       <td className="p-4 text-slate-700">
-                        <span className="flex items-center gap-1 text-orange-600 font-mono">
-                          <Flame className="h-3.5 w-3.5 fill-orange-50" />
+                        <span className="flex items-center gap-1 text-muted-foreground font-mono">
+                          <Calendar className="h-3.5 w-3.5" />
                           {u.currentStreak} days
                         </span>
                       </td>

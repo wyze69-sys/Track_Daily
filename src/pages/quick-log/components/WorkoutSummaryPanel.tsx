@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, Save, Trophy, Loader2 } from 'lucide-react';
+import { Activity, Save, Trophy, Loader2 } from 'lucide-react';
 
 interface WorkoutSummaryPanelProps {
   exerciseCount: number;
@@ -27,7 +27,7 @@ export const WorkoutSummaryPanel: React.FC<WorkoutSummaryPanelProps> = ({
   return (
     <div className="lg:col-span-3 p-5 rounded-2xl border border-border bg-card h-fit space-y-4">
       <div className="flex items-center gap-2 border-b border-border pb-3">
-        <Zap className="h-5 w-5 text-primary" />
+        <Activity className="h-5 w-5 text-primary" />
         <h3 className="font-extrabold text-sm tracking-tight text-foreground">Summary Preview</h3>
       </div>
 

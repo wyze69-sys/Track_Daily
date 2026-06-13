@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { gamificationService, GamificationSummary } from '../../services/api';
 import {
+  Activity,
   BarChart3,
   Calendar,
   ChevronRight,
@@ -12,6 +13,7 @@ import {
   Grid,
   History,
   LayoutDashboard,
+  LineChart,
   LogOut,
   Megaphone,
   Menu,
@@ -36,7 +38,7 @@ const studentNav = [
   { label: 'Weekly Plan', path: '/weekly-plan', icon: Calendar },
   { label: 'History', path: '/history', icon: History },
   { label: 'Progress', path: '/progress', icon: BarChart3 },
-  { label: 'AI Insights', path: '/insights/nutrition', icon: Sparkles },
+  { label: 'Nutrition Insights', path: '/insights/nutrition', icon: LineChart },
   { label: 'Gamification', path: '/badges', icon: Trophy },
   { label: 'Profile Settings', path: '/profile', icon: User }
 ];
@@ -109,10 +111,9 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
         <div className="flex items-center justify-between px-5 py-5">
           <Link to={isAdminRoute ? '/admin/dashboard' : '/dashboard'} className="flex items-center gap-2.5">
             <div
-              className="flex h-8 w-8 items-center justify-center rounded-xl"
-              style={{ background: 'linear-gradient(135deg, #a3e635, #84cc16)' }}
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary"
             >
-              {isAdminRoute ? <Shield size={17} color="#09090f" strokeWidth={2.5} /> : <Zap size={18} color="#09090f" strokeWidth={2.5} />}
+              {isAdminRoute ? <Shield size={17} color="#09090f" strokeWidth={2.5} /> : <Dumbbell size={16} color="#09090f" strokeWidth={2.5} />}
             </div>
             <span className="text-lg font-black tracking-tight text-foreground">
               logweb
@@ -129,8 +130,8 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
 
         <div className="mx-4 mb-4 flex items-center gap-3 rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.04)' }}>
           <div
-            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-sm font-black"
-            style={{ background: 'linear-gradient(135deg, #a3e635, #84cc16)', color: '#09090f' }}
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-sm font-black bg-primary"
+            style={{ color: '#09090f' }}
           >
             {initialsFor(user?.fullName)}
           </div>
@@ -144,8 +145,8 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
                 </>
               ) : (
                 <>
-                  <Flame size={11} color="#f97316" />
-                  <span className="text-[0.7rem] font-bold text-orange-500">{stats?.currentStreak || 0}-day streak</span>
+                  <Activity size={11} className="text-primary" />
+                  <span className="text-[0.7rem] font-bold text-muted-foreground">{stats?.currentStreak || 0}-day streak</span>
                 </>
               )}
             </div>
@@ -176,7 +177,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
                     <Icon size={17} />
                     <span className="flex-1 font-semibold">{item.label}</span>
                     {item.path === '/badges' && !isAdminRoute && (
-                      <span className="rounded-lg px-1.5 py-0.5 text-xs font-bold text-orange-500" style={{ background: 'rgba(249,115,22,0.15)' }}>
+                      <span className="rounded-lg px-1.5 py-0.5 text-xs font-bold text-primary" style={{ background: 'rgba(163,230,53,0.1)' }}>
                         {stats?.currentStreak || 0} day
                       </span>
                     )}
@@ -197,8 +198,8 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
               </div>
               <div className="h-1.5 overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
                 <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${Math.min(100, stats.progressToNextLevel || 0)}%`, background: 'linear-gradient(90deg, #84cc16, #a3e635)' }}
+                  className="h-full rounded-full transition-all bg-primary"
+                  style={{ width: `${Math.min(100, stats.progressToNextLevel || 0)}%` }}
                 />
               </div>
               <p className="mt-1.5 text-[0.65rem] text-muted-foreground">Progress to next level</p>
@@ -227,8 +228,8 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
             <Menu size={18} />
           </button>
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, #a3e635, #84cc16)' }}>
-              <Zap size={13} color="#09090f" strokeWidth={2.5} />
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary">
+              <Dumbbell size={12} color="#09090f" strokeWidth={2.5} />
             </div>
             <span className="text-base font-black text-foreground">logweb</span>
           </div>

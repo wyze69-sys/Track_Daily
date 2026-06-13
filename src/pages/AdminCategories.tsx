@@ -164,7 +164,7 @@ export const AdminCategories: React.FC = () => {
                   <div key={cat.id} className="bg-white p-4 rounded-xl border border-gray-150 shadow-xs flex justify-between items-start gap-4 hover:border-orange-200 transition-colors">
                     <div>
                       <h4 className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                        <span className="text-gray-400 font-mono text-[10px] uppercase font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded-md">icon: {cat.icon}</span>
+                        <span className="text-gray-400 font-mono text-[10px] uppercase font-bold text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-md">icon: {cat.icon}</span>
                         {cat.name}
                       </h4>
                       <p className="text-[11px] text-gray-500 mt-1 leading-normal font-medium">{cat.description || 'No description assigned.'}</p>

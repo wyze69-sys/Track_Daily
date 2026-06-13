@@ -204,11 +204,11 @@ export const AdminChallenges: React.FC = () => {
                         <p className="text-xs text-gray-500 leading-relaxed font-medium">{chg.description}</p>
                         
                         <div className="flex items-center gap-3 mt-3 text-[10px] font-mono font-bold uppercase">
-                          <span className="text-purple-700 bg-purple-50 border border-purple-100 px-2 py-0.5 rounded-md flex items-center gap-0.5">
-                            <Zap className="h-2.5 w-2.5 fill-purple-100" />
+                          <span className="text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md flex items-center gap-0.5">
+                            <Trophy className="h-2.5 w-2.5" />
                             +{chg.xpReward} XP Reward
                           </span>
-                          <span className="text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md">
+                          <span className="text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-md">
                             {chg.targetWorkouts} workouts target
                           </span>
                           <span className="text-slate-400">Expires: {chg.endDate}</span>

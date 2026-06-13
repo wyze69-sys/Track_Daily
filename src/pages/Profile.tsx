@@ -262,7 +262,7 @@ export const Profile: React.FC = () => {
                   style={{ background: 'var(--card)' }}
                 >
                   <div className="flex items-center gap-2 mb-2 pb-3 border-b border-border/40">
-                    <Sparkles className="h-4.5 w-4.5 text-primary" />
+                    <User className="h-4.5 w-4.5 text-primary" />
                     <h3 className="font-extrabold text-sm text-foreground tracking-tight">Personal Details</h3>
                   </div>
 

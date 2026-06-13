@@ -147,18 +147,18 @@ export const StudentDashboard: React.FC = () => {
         >
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500/10">
-                <Flame size={18} color="#f97316" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <Calendar size={18} color="var(--primary)" />
               </div>
               <div>
                 <span className="block text-xs text-muted-foreground font-semibold uppercase tracking-wider">Workout Streak</span>
-                <span className="text-sm font-black text-orange-500">{gamification?.currentStreak || 0}-day streak</span>
+                <span className="text-sm font-black text-foreground">{gamification?.currentStreak || 0}-day streak</span>
               </div>
             </div>
             <div className="hidden h-6 w-px bg-border lg:block" />
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                <Zap size={18} color="#a3e635" />
+                <Trophy size={18} color="var(--primary)" />
               </div>
               <div>
                 <span className="block text-xs text-muted-foreground font-semibold uppercase tracking-wider">Level Status</span>
@@ -167,12 +167,12 @@ export const StudentDashboard: React.FC = () => {
             </div>
             <div className="hidden h-6 w-px bg-border lg:block" />
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10">
-                <Trophy size={18} color="#fbbf24" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <Trophy size={18} color="var(--primary)" />
               </div>
               <div>
                 <span className="block text-xs text-muted-foreground font-semibold uppercase tracking-wider">Achievements</span>
-                <span className="text-sm font-black text-amber-450">{gamification?.badgesCount || 0} Badges Earned</span>
+                <span className="text-sm font-black text-foreground">{gamification?.badgesCount || 0} Badges Earned</span>
               </div>
             </div>
           </div>
@@ -184,10 +184,10 @@ export const StudentDashboard: React.FC = () => {
         {/* KPIs Grid */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[
-            { label: 'Recent energy', value: totalCalories || 0, unit: 'kcal', icon: Flame, color: '#f97316', bg: 'rgba(249,115,22,0.08)' },
-            { label: 'Active time', value: totalMinutes || 0, unit: 'min', icon: Clock, color: '#38bdf8', bg: 'rgba(56,189,248,0.08)' },
-            { label: 'Tracked sets', value: totalSets || 0, unit: 'sets', icon: Dumbbell, color: '#a3e635', bg: 'rgba(163,230,53,0.08)' },
-            { label: 'Weekly target', value: weeklyPlan?.targetCount || 0, unit: 'weekly', icon: Calendar, color: '#a78bfa', bg: 'rgba(167,139,250,0.08)' }
+            { label: 'Recent energy', value: totalCalories || 0, unit: 'kcal', icon: Flame, color: 'var(--primary)', bg: 'rgba(163, 230, 53, 0.08)' },
+            { label: 'Active time', value: totalMinutes || 0, unit: 'min', icon: Clock, color: 'var(--primary)', bg: 'rgba(163, 230, 53, 0.08)' },
+            { label: 'Tracked sets', value: totalSets || 0, unit: 'sets', icon: Dumbbell, color: 'var(--primary)', bg: 'rgba(163, 230, 53, 0.08)' },
+            { label: 'Weekly target', value: weeklyPlan?.targetCount || 0, unit: 'weekly', icon: Calendar, color: 'var(--primary)', bg: 'rgba(163, 230, 53, 0.08)' }
           ].map((stat) => (
             <div key={stat.label} className="rounded-xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
               <div className="mb-2 flex items-center justify-between">
