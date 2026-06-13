@@ -65,6 +65,7 @@ export interface Workout {
   note: string;
   templateId: string | null;
   xpEarned: number;
+  caloriesBurned?: number;
   createdAt: string;
   exercises?: any[];
 }

@@ -1,33 +1,38 @@
 import express from 'express';
 import { readDatabase, writeDatabase } from '../../db/db';
 import { authMiddleware, AuthenticatedRequest } from '../middleware/auth';
-import { processWorkoutLogging } from '../services/workoutEngine';
+import { processWorkoutLogging, withEstimatedCalories } from '../services/workoutEngine';
 
 const router = express.Router();
 
 router.get('/', authMiddleware, (req: AuthenticatedRequest, res) => {
   const db = readDatabase();
+  const profile = db.userProfiles.find((p) => p.userId === req.user!.id);
   const userWorkouts = db.workouts
     .filter((w) => w.userId === req.user!.id)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .map((workout) => withEstimatedCalories(workout, profile));
   res.json(userWorkouts);
 });
 
 router.get('/recent', authMiddleware, (req: AuthenticatedRequest, res) => {
   const db = readDatabase();
+  const profile = db.userProfiles.find((p) => p.userId === req.user!.id);
   const recent = db.workouts
     .filter((w) => w.userId === req.user!.id)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
+    .slice(0, 5)
+    .map((workout) => withEstimatedCalories(workout, profile));
   res.json(recent);
 });
 
 router.get('/last', authMiddleware, (req: AuthenticatedRequest, res) => {
   const db = readDatabase();
+  const profile = db.userProfiles.find((p) => p.userId === req.user!.id);
   const userLogs = db.workouts.filter((w) => w.userId === req.user!.id);
   if (userLogs.length === 0) { res.json(null); return; }
   const last = userLogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-  res.json(last);
+  res.json(withEstimatedCalories(last, profile));
 });
 
 router.post('/quick-log', authMiddleware, (req: AuthenticatedRequest, res) => {
@@ -91,6 +96,7 @@ router.post('/', authMiddleware, (req: AuthenticatedRequest, res) => {
 router.put('/:id', authMiddleware, (req: AuthenticatedRequest, res) => {
   const { workoutType, durationMinutes, moodAfterWorkout, note, exercises } = req.body;
   const db = readDatabase();
+  const profile = db.userProfiles.find((p) => p.userId === req.user!.id);
   const index = db.workouts.findIndex((w) => w.id === req.params.id && w.userId === req.user!.id);
   if (index === -1) { res.status(404).json({ error: 'Workout session not found' }); return; }
 
@@ -102,6 +108,7 @@ router.put('/:id', authMiddleware, (req: AuthenticatedRequest, res) => {
     note: note !== undefined ? note : db.workouts[index].note,
     exercises: exercises !== undefined ? exercises : db.workouts[index].exercises
   };
+  db.workouts[index] = withEstimatedCalories(db.workouts[index], profile);
   writeDatabase(db);
   res.json(db.workouts[index]);
 });
