@@ -86,6 +86,42 @@ export const History: React.FC = () => {
     }
   };
 
+  const getCategoryColor = (category: string) => {
+    switch (category?.toLowerCase()) {
+      case 'strength':
+        return {
+          bg: 'rgba(163, 230, 53, 0.1)',
+          color: '#a3e635',
+          border: 'rgba(163, 230, 53, 0.2)'
+        };
+      case 'cardio':
+        return {
+          bg: 'rgba(56, 189, 248, 0.1)',
+          color: '#38bdf8',
+          border: 'rgba(56, 189, 248, 0.2)'
+        };
+      case 'flexibility & yoga':
+      case 'yoga':
+        return {
+          bg: 'rgba(167, 139, 250, 0.1)',
+          color: '#a78bfa',
+          border: 'rgba(167, 139, 250, 0.2)'
+        };
+      case 'sports':
+        return {
+          bg: 'rgba(249, 115, 22, 0.1)',
+          color: '#f97316',
+          border: 'rgba(249, 115, 22, 0.2)'
+        };
+      default:
+        return {
+          bg: 'rgba(251, 113, 133, 0.1)',
+          color: '#fb7185',
+          border: 'rgba(251, 113, 133, 0.2)'
+        };
+    }
+  };
+
   return (
     <PageContainer>
       <div className="max-w-4xl mx-auto space-y-6">
@@ -206,88 +242,153 @@ export const History: React.FC = () => {
                     </div>
                   ) : (
                     // STATIC TIMELINE LOG
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-                      <div className="flex gap-4">
-                        <span 
-                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-[9px] font-black uppercase tracking-wider border shadow-2xs text-center leading-none"
-                          style={{ background: moodStyle.bg, color: moodStyle.color, borderColor: moodStyle.color + '33' }}
-                        >
-                          {w.moodAfterWorkout ? w.moodAfterWorkout.substring(0, 3) : 'OK'}
-                        </span>
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                      {/* Left Column: Date & Mood */}
+                      <div className="md:col-span-3 flex md:flex-col items-center md:items-start justify-between md:justify-start gap-3 md:border-r border-border md:pr-4">
+                        <div className="space-y-0.5">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase font-mono">
+                            {new Date(w.createdAt).toLocaleString(undefined, { weekday: 'short' })}
+                          </p>
+                          <h3 className="text-xl font-black text-foreground tracking-tight leading-none">
+                            {new Date(w.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric' })}
+                          </h3>
+                          <p className="text-[10px] font-semibold text-muted-foreground font-mono">
+                            {new Date(w.createdAt).getFullYear()} • {new Date(w.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                          </p>
+                        </div>
                         
-                        <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span 
+                            className="flex h-7 px-2.5 items-center justify-center rounded-xl text-[9px] font-black uppercase tracking-wider border shadow-2xs leading-none"
+                            style={{ background: moodStyle.bg, color: moodStyle.color, borderColor: moodStyle.color + '33' }}
+                          >
+                            {w.moodAfterWorkout || 'Satisfied'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right Column: Workout Details */}
+                      <div className="md:col-span-9 flex flex-col justify-between gap-3">
+                        <div className="space-y-2">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-sm font-bold text-foreground">{w.workoutType} Session</h4>
+                            {(() => {
+                              const catColor = getCategoryColor(w.workoutType);
+                              return (
+                                <span
+                                  className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg border leading-none font-mono"
+                                  style={{ background: catColor.bg, color: catColor.color, borderColor: catColor.border }}
+                                >
+                                  {w.workoutType}
+                                </span>
+                              );
+                            })()}
                             <span className="text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
                               +{w.xpEarned} XP
                             </span>
-                          </div>
-
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-                            <span className="flex items-center gap-1 font-semibold text-foreground">
+                            <span className="flex items-center gap-1 text-[11px] font-semibold text-foreground ml-auto">
                               <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                               {w.durationMinutes} min
-                            </span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1 font-medium font-mono">
-                              <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                              {new Date(w.createdAt).toLocaleString(undefined, { 
-                                month: 'short', 
-                                day: 'numeric', 
-                                year: 'numeric',
-                                hour: 'numeric', 
-                                minute: '2-digit' 
-                              })}
                             </span>
                           </div>
 
                           {w.note && (
-                            <p className="text-xs text-muted-foreground bg-muted/10 px-3 py-2 rounded-xl mt-2 border-l-2 border-primary">
+                            <p className="text-xs text-muted-foreground bg-muted/10 px-3 py-2 rounded-xl border-l-2 border-primary">
                               {w.note}
                             </p>
                           )}
 
                           {w.exercises && w.exercises.length > 0 && (
-                            <div className="mt-3 space-y-2">
-                              {w.exercises.slice(0, 3).map((exercise, index) => (
-                                <div key={`${w.id}_${exercise.id || index}`} className="rounded-xl border border-border bg-muted/5 px-3 py-2">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="text-xs font-bold text-foreground">{exercise.exerciseName}</span>
-                                    <span className="text-[10px] font-mono font-bold text-muted-foreground">{exercise.duration}m</span>
+                            <div className="mt-3 space-y-1.5">
+                              <p className="text-[9px] font-bold uppercase text-muted-foreground tracking-wider font-mono">Exercises ({w.exercises.length})</p>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {w.exercises.map((exercise, index) => (
+                                  <div key={`${w.id}_${exercise.id || index}`} className="rounded-xl border border-border bg-muted/5 px-3 py-2 flex flex-col justify-between">
+                                    <div className="flex items-center justify-between gap-2 border-b border-border/20 pb-1 mb-1">
+                                      <span className="text-xs font-bold text-foreground truncate">{exercise.exerciseName}</span>
+                                      <span className="text-[9px] font-mono font-bold text-muted-foreground">{exercise.duration}m</span>
+                                    </div>
+                                    {exercise.sets && exercise.sets.length > 0 ? (
+                                      <div className="flex flex-wrap gap-1 mt-0.5">
+                                        {exercise.sets.map((set, setIndex) => (
+                                          <span key={setIndex} className="text-[8px] font-mono font-medium bg-muted px-1.5 py-0.2 rounded border border-border">
+                                            S{setIndex + 1}: {set.reps}r {set.weight ? `@ ${set.weight}kg` : ''}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <span className="text-[8px] text-muted-foreground italic">No sets recorded</span>
+                                    )}
                                   </div>
-                                  {exercise.sets && exercise.sets.length > 0 && (
-                                    <p className="mt-1 text-[10px] text-muted-foreground">
-                                      {exercise.sets.map((set, setIndex) => `S${setIndex + 1}: ${set.reps} reps${set.weight ? ` @ ${set.weight}kg` : ''}`).join(' • ')}
-                                    </p>
-                                  )}
-                                </div>
-                              ))}
-                              {w.exercises.length > 3 && (
-                                <p className="text-[10px] font-bold text-muted-foreground">+{w.exercises.length - 3} more exercises</p>
-                              )}
+                                ))}
+                              </div>
                             </div>
                           )}
-                        </div>
-                      </div>
 
-                      {/* Management Edit/Delete actions */}
-                      <div className="flex sm:flex-col justify-end gap-2 border-t sm:border-t-0 border-border pt-3 sm:pt-0 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => handleStartEdit(w)}
-                          className="flex-1 sm:w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold text-foreground border border-border bg-muted/10 rounded-xl hover:bg-muted/20 transition-colors"
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                          Edit Log
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteLog(w.id)}
-                          className="flex-1 sm:w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-400 border border-red-500/20 bg-red-500/5 rounded-xl hover:bg-red-500/10 transition-colors"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Delete Log
-                        </button>
+                          {(() => {
+                            let totalSets = 0;
+                            let totalReps = 0;
+                            let totalVolume = 0;
+                            let hasWeightSets = false;
+
+                            if (w.exercises) {
+                              w.exercises.forEach((ex) => {
+                                if (ex.sets) {
+                                  totalSets += ex.sets.length;
+                                  ex.sets.forEach((set: any) => {
+                                    totalReps += set.reps || 0;
+                                    if (set.weight && set.weight > 0) {
+                                      totalVolume += (set.reps || 0) * (set.weight || 0);
+                                      hasWeightSets = true;
+                                    }
+                                  });
+                                }
+                              });
+                            }
+
+                            if (totalSets === 0) return null;
+
+                            return (
+                              <div className="grid grid-cols-3 gap-2 border-t border-border/40 pt-2.5 mt-2.5">
+                                <div className="text-center bg-muted/20 rounded-xl p-1.5 border border-border/20">
+                                  <span className="block text-[8px] text-muted-foreground uppercase font-bold tracking-wider">Total Sets</span>
+                                  <span className="text-xs font-black text-foreground font-mono">{totalSets}</span>
+                                </div>
+                                <div className="text-center bg-muted/20 rounded-xl p-1.5 border border-border/20">
+                                  <span className="block text-[8px] text-muted-foreground uppercase font-bold tracking-wider">Total Reps</span>
+                                  <span className="text-xs font-black text-foreground font-mono">{totalReps}</span>
+                                </div>
+                                <div className="text-center bg-muted/20 rounded-xl p-1.5 border border-border/20">
+                                  <span className="block text-[8px] text-muted-foreground uppercase font-bold tracking-wider">
+                                    {hasWeightSets ? 'Total Volume' : 'Movements'}
+                                  </span>
+                                  <span className="text-xs font-black text-primary font-mono">
+                                    {hasWeightSets ? `${totalVolume.toLocaleString()} kg` : `${w.exercises?.length || 0}`}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+
+                        {/* Management Edit/Delete actions */}
+                        <div className="flex justify-end gap-2 border-t border-border/30 pt-2.5 mt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(w)}
+                            className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-bold text-foreground border border-border bg-muted/10 rounded-xl hover:bg-muted/20 transition-all hover:border-primary/20"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLog(w.id)}
+                            className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-bold text-red-400 border border-red-500/20 bg-red-500/5 rounded-xl hover:bg-red-500/10 transition-all"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}

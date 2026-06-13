@@ -69,7 +69,7 @@ function calculateCurrentWeekStartDate(): string {
   return mon.toISOString().split('T')[0];
 }
 
-function processWorkoutLogging(userId: string, workoutType: string, duration: number, mood: string, note: string, templateId: string | null) {
+function processWorkoutLogging(userId: string, workoutType: string, duration: number, mood: string, note: string, templateId: string | null, exercises?: any[]) {
   const db = readDatabase();
   
   // 1. Calculate XP Earned
@@ -87,7 +87,8 @@ function processWorkoutLogging(userId: string, workoutType: string, duration: nu
     note: note || '',
     templateId,
     xpEarned,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    exercises: exercises || []
   };
   db.workouts.push(newWorkout);
 
@@ -354,7 +355,7 @@ app.get('/api/workouts/last', authMiddleware, (req: AuthenticatedRequest, res) =
 });
 
 app.post('/api/workouts', authMiddleware, (req: AuthenticatedRequest, res) => {
-  const { workoutType, durationMinutes, moodAfterWorkout, note, templateId } = req.body;
+  const { workoutType, durationMinutes, moodAfterWorkout, note, templateId, exercises } = req.body;
   if (!workoutType || !durationMinutes) {
     res.status(400).json({ error: 'Workout type and duration in minutes are required' });
     return;
@@ -366,14 +367,15 @@ app.post('/api/workouts', authMiddleware, (req: AuthenticatedRequest, res) => {
     parseInt(durationMinutes),
     moodAfterWorkout,
     note,
-    templateId || null
+    templateId || null,
+    exercises
   );
 
   res.status(201).json(result);
 });
 
 app.put('/api/workouts/:id', authMiddleware, (req: AuthenticatedRequest, res) => {
-  const { workoutType, durationMinutes, moodAfterWorkout, note } = req.body;
+  const { workoutType, durationMinutes, moodAfterWorkout, note, exercises } = req.body;
   const db = readDatabase();
   const index = db.workouts.findIndex(w => w.id === req.params.id && w.userId === req.user!.id);
 
@@ -387,7 +389,8 @@ app.put('/api/workouts/:id', authMiddleware, (req: AuthenticatedRequest, res) =>
     workoutType: workoutType || db.workouts[index].workoutType,
     durationMinutes: durationMinutes ? parseInt(durationMinutes) : db.workouts[index].durationMinutes,
     moodAfterWorkout: moodAfterWorkout || db.workouts[index].moodAfterWorkout,
-    note: note !== undefined ? note : db.workouts[index].note
+    note: note !== undefined ? note : db.workouts[index].note,
+    exercises: exercises !== undefined ? exercises : db.workouts[index].exercises
   };
 
   writeDatabase(db);
@@ -410,7 +413,7 @@ app.delete('/api/workouts/:id', authMiddleware, (req: AuthenticatedRequest, res)
 
 // 3. QUICK LOGS API
 app.post('/api/workouts/quick-log', authMiddleware, (req: AuthenticatedRequest, res) => {
-  const { workoutType, durationMinutes, moodAfterWorkout, note, templateId } = req.body;
+  const { workoutType, durationMinutes, moodAfterWorkout, note, templateId, exercises } = req.body;
   if (!workoutType || !durationMinutes) {
     res.status(400).json({ error: 'workout_type and duration_minutes are mandatory' });
     return;
@@ -422,7 +425,8 @@ app.post('/api/workouts/quick-log', authMiddleware, (req: AuthenticatedRequest, 
     parseInt(durationMinutes),
     moodAfterWorkout || 'Satisfied',
     note || '',
-    templateId || null
+    templateId || null,
+    exercises
   );
 
   res.json(result);
@@ -443,7 +447,8 @@ app.post('/api/workouts/repeat-last', authMiddleware, (req: AuthenticatedRequest
     lastLogged.durationMinutes,
     lastLogged.moodAfterWorkout || 'Satisfied',
     'Repeated last log',
-    lastLogged.templateId
+    lastLogged.templateId,
+    lastLogged.exercises
   );
 
   res.json(result);
@@ -852,8 +857,8 @@ app.get('/api/templates', authMiddleware, (req, res) => {
   res.json(db.workoutTemplates);
 });
 
-app.post('/api/templates', authMiddleware, requireAdmin, (req: AuthenticatedRequest, res) => {
-  const { name, category, durationMinutes } = req.body;
+app.post('/api/templates', authMiddleware, (req: AuthenticatedRequest, res) => {
+  const { name, category, durationMinutes, exercises } = req.body;
   if (!name || !category || !durationMinutes) {
     res.status(400).json({ error: 'Template name, category, and standard duration are required' });
     return;
@@ -865,15 +870,16 @@ app.post('/api/templates', authMiddleware, requireAdmin, (req: AuthenticatedRequ
     category,
     durationMinutes: parseInt(durationMinutes),
     createdBy: req.user!.id,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    exercises: exercises || []
   };
   db.workoutTemplates.push(newTpl);
   writeDatabase(db);
   res.status(201).json(newTpl);
 });
 
-app.put('/api/templates/:id', authMiddleware, requireAdmin, (req, res) => {
-  const { name, category, durationMinutes } = req.body;
+app.put('/api/templates/:id', authMiddleware, (req, res) => {
+  const { name, category, durationMinutes, exercises } = req.body;
   const db = readDatabase();
   const index = db.workoutTemplates.findIndex(t => t.id === req.params.id);
   if (index === -1) {
@@ -884,13 +890,14 @@ app.put('/api/templates/:id', authMiddleware, requireAdmin, (req, res) => {
     ...db.workoutTemplates[index],
     name: name || db.workoutTemplates[index].name,
     category: category || db.workoutTemplates[index].category,
-    durationMinutes: durationMinutes ? parseInt(durationMinutes) : db.workoutTemplates[index].durationMinutes
+    durationMinutes: durationMinutes ? parseInt(durationMinutes) : db.workoutTemplates[index].durationMinutes,
+    exercises: exercises !== undefined ? exercises : db.workoutTemplates[index].exercises
   };
   writeDatabase(db);
   res.json(db.workoutTemplates[index]);
 });
 
-app.delete('/api/templates/:id', authMiddleware, requireAdmin, (req, res) => {
+app.delete('/api/templates/:id', authMiddleware, (req, res) => {
   const db = readDatabase();
   db.workoutTemplates = db.workoutTemplates.filter(t => t.id !== req.params.id);
   writeDatabase(db);

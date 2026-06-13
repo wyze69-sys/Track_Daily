@@ -40,6 +40,7 @@ export interface Workout {
   templateId: string | null;
   xpEarned: number;
   createdAt: string;
+  exercises?: any[];
 }
 
 export interface UserAchievement {
@@ -56,6 +57,7 @@ export interface WorkoutTemplate {
   durationMinutes: number;
   createdBy: string;
   createdAt: string;
+  exercises?: any[];
 }
 
 export interface WeeklyPlan {
@@ -205,9 +207,76 @@ const SEED_DATA: DatabaseSchema = {
     { id: "ach-1", userId: "u-student", badgeId: "first_workout", unlockedAt: "2026-06-09T17:15:00Z" }
   ],
   workoutTemplates: [
-    { id: "tpl-1", name: "Campus Gym Upper Push", category: "Strength", durationMinutes: 40, createdBy: "u-admin", createdAt: "2026-06-02T10:00:00Z" },
-    { id: "tpl-2", name: "Quick 20-Min Jog", category: "Cardio", durationMinutes: 20, createdBy: "u-admin", createdAt: "2026-06-02T10:15:00Z" },
-    { id: "tpl-3", name: "Sunset Yoga Stretch", category: "Flexibility & Yoga", durationMinutes: 15, createdBy: "u-admin", createdAt: "2026-06-02T10:20:00Z" }
+    {
+      id: "tpl-1",
+      name: "Campus Gym Upper Push",
+      category: "Strength",
+      durationMinutes: 40,
+      createdBy: "u-admin",
+      createdAt: "2026-06-02T10:00:00Z",
+      exercises: [
+        {
+          exerciseName: "Bench Press",
+          duration: 15,
+          sets: [
+            { reps: 10, weight: 60 },
+            { reps: 8, weight: 70 },
+            { reps: 6, weight: 80 }
+          ]
+        },
+        {
+          exerciseName: "Overhead Press",
+          duration: 15,
+          sets: [
+            { reps: 10, weight: 30 },
+            { reps: 10, weight: 35 },
+            { reps: 8, weight: 40 }
+          ]
+        },
+        {
+          exerciseName: "Tricep Pushdowns",
+          duration: 10,
+          sets: [
+            { reps: 12, weight: 20 },
+            { reps: 12, weight: 25 }
+          ]
+        }
+      ]
+    },
+    {
+      id: "tpl-2",
+      name: "Quick 20-Min Jog",
+      category: "Cardio",
+      durationMinutes: 20,
+      createdBy: "u-admin",
+      createdAt: "2026-06-02T10:15:00Z",
+      exercises: [
+        {
+          exerciseName: "Outdoor Run",
+          duration: 20,
+          sets: [
+            { reps: 1, weight: 0 }
+          ]
+        }
+      ]
+    },
+    {
+      id: "tpl-3",
+      name: "Sunset Yoga Stretch",
+      category: "Flexibility & Yoga",
+      durationMinutes: 15,
+      createdBy: "u-admin",
+      createdAt: "2026-06-02T10:20:00Z",
+      exercises: [
+        {
+          exerciseName: "Sun Salutation",
+          duration: 15,
+          sets: [
+            { reps: 1, weight: 0 }
+          ]
+        }
+      ]
+    }
   ],
   weeklyPlans: [
     { id: "wp-1", userId: "u-student", targetCount: 3, currentCount: 2, weekStartDate: "2026-06-08" }

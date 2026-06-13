@@ -19,10 +19,12 @@ import {
   Trophy,
   Search,
   Plus,
+  Minus,
   Trash2,
   Dumbbell,
   ListChecks,
-  Save
+  Save,
+  Copy
 } from 'lucide-react';
 
 type DraftSet = { reps: number; weight: number };
@@ -55,6 +57,7 @@ export const QuickLog: React.FC = () => {
   const [templateSearch, setTemplateSearch] = useState('');
   const [templateName, setTemplateName] = useState('');
   const [selectedExercises, setSelectedExercises] = useState<DraftExercise[]>([]);
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
 
   const [submitting, setSubmitting] = useState(false);
   const [templateSaving, setTemplateSaving] = useState(false);
@@ -99,7 +102,10 @@ export const QuickLog: React.FC = () => {
   const filteredLibrary = useMemo(() => {
     const search = exerciseSearch.trim().toLowerCase();
     return library
-      .filter((exercise) => !activeCategory?.id || exercise.categoryId === activeCategory.id)
+      .filter((exercise) => {
+        if (search) return true; // Search across all categories when typing
+        return !activeCategory?.id || exercise.categoryId === activeCategory.id;
+      })
       .filter((exercise) => {
         if (!search) return true;
         return [exercise.name, exercise.muscleGroup, exercise.equipment]
@@ -195,6 +201,20 @@ export const QuickLog: React.FC = () => {
     setSelectedExercises((current) =>
       current.map((exercise) => exercise.localId === localId ? { ...exercise, ...updates } : exercise)
     );
+    if (updates.exerciseName !== undefined) {
+      setValidationErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[`name_${localId}`];
+        return copy;
+      });
+    }
+    if (updates.duration !== undefined) {
+      setValidationErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[`duration_${localId}`];
+        return copy;
+      });
+    }
   };
 
   const updateSet = (exerciseId: string, setIndex: number, updates: Partial<DraftSet>) => {
@@ -207,6 +227,20 @@ export const QuickLog: React.FC = () => {
         };
       })
     );
+    if (updates.reps !== undefined) {
+      setValidationErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[`reps_${exerciseId}_${setIndex}`];
+        return copy;
+      });
+    }
+    if (updates.weight !== undefined) {
+      setValidationErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[`weight_${exerciseId}_${setIndex}`];
+        return copy;
+      });
+    }
   };
 
   const addSet = (exerciseId: string) => {
@@ -226,10 +260,26 @@ export const QuickLog: React.FC = () => {
         return { ...exercise, sets: exercise.sets.filter((_, index) => index !== setIndex) };
       })
     );
+    setValidationErrors((prev) => {
+      const copy = { ...prev };
+      Object.keys(copy).forEach((key) => {
+        if (key.startsWith(`reps_${exerciseId}_`) || key.startsWith(`weight_${exerciseId}_`)) {
+          delete copy[key];
+        }
+      });
+      return copy;
+    });
   };
 
   const removeExercise = (exerciseId: string) => {
     setSelectedExercises((current) => current.filter((exercise) => exercise.localId !== exerciseId));
+    setValidationErrors((prev) => {
+      const copy = { ...prev };
+      Object.keys(copy).forEach((key) => {
+        if (key.includes(exerciseId)) delete copy[key];
+      });
+      return copy;
+    });
   };
 
   const buildWorkoutExercises = (): WorkoutExercise[] => selectedExercises.map((exercise) => ({
@@ -283,7 +333,9 @@ export const QuickLog: React.FC = () => {
 
   const handleQuickSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setValidationErrors({});
     setError(null);
+    setSuccess(null);
 
     if (!workoutType) {
       setError('Please choose a workout category.');
@@ -291,15 +343,34 @@ export const QuickLog: React.FC = () => {
     }
 
     if (selectedExercises.length === 0) {
-      setError('Add at least one exercise from the library or create a custom exercise.');
+      setError('Add at least one exercise to your workout.');
       return;
     }
 
-    const invalidExercise = selectedExercises.find(
-      (exercise) => !exercise.exerciseName.trim() || exercise.duration <= 0 || exercise.sets.length === 0
-    );
-    if (invalidExercise) {
-      setError('Each exercise needs a name, duration, and at least one set.');
+    const newErrors: { [key: string]: string } = {};
+    selectedExercises.forEach((exercise) => {
+      if (!exercise.exerciseName.trim()) {
+        newErrors[`name_${exercise.localId}`] = 'Exercise name is required';
+      }
+      if (exercise.duration <= 0) {
+        newErrors[`duration_${exercise.localId}`] = 'Duration must be greater than 0';
+      }
+      if (exercise.sets.length === 0) {
+        newErrors[`sets_${exercise.localId}`] = 'At least one set is required';
+      }
+      exercise.sets.forEach((set, sIdx) => {
+        if (set.reps < 1) {
+          newErrors[`reps_${exercise.localId}_${sIdx}`] = 'Reps must be >= 1';
+        }
+        if (set.weight < 0) {
+          newErrors[`weight_${exercise.localId}_${sIdx}`] = 'Weight cannot be negative';
+        }
+      });
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setValidationErrors(newErrors);
+      setError('Please resolve the validation errors highlighted below.');
       return;
     }
 
@@ -408,32 +479,54 @@ export const QuickLog: React.FC = () => {
                     <input
                       value={exerciseSearch}
                       onChange={(e) => setExerciseSearch(e.target.value)}
-                      placeholder="Search movements..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (filteredLibrary.length > 0) {
+                            addExerciseFromLibrary(filteredLibrary[0]);
+                            setExerciseSearch('');
+                          }
+                        }
+                      }}
+                      placeholder="Search movements (Press Enter to add)..."
                       className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-border bg-input-background focus:border-primary outline-none"
                     />
                   </div>
 
                   <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
-                    {filteredLibrary.map((exercise) => (
-                      <button
-                        type="button"
-                        key={exercise.id}
-                        onClick={() => addExerciseFromLibrary(exercise)}
-                        className="w-full text-left p-3 rounded-xl border border-border hover:border-primary/40 hover:bg-white/[0.01] transition-all group active:scale-[0.99]"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-foreground truncate">{exercise.name}</p>
-                            <p className="text-[10px] text-muted-foreground mt-0.5 font-semibold">
-                              {exercise.muscleGroup} • {exercise.equipment}
-                            </p>
+                    {filteredLibrary.map((exercise) => {
+                      const isDiffCategory = activeCategory?.id && exercise.categoryId !== activeCategory.id;
+                      return (
+                        <button
+                          type="button"
+                          key={exercise.id}
+                          onClick={() => {
+                            addExerciseFromLibrary(exercise);
+                            setExerciseSearch('');
+                          }}
+                          className="w-full text-left p-3 rounded-xl border border-border hover:border-primary/40 hover:bg-white/[0.01] transition-all group active:scale-[0.99]"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <p className="text-xs font-bold text-foreground truncate">{exercise.name}</p>
+                                {isDiffCategory && (
+                                  <span className="text-[8px] font-bold uppercase px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20">
+                                    {exercise.categoryName}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-muted-foreground mt-0.5 font-semibold">
+                                {exercise.muscleGroup} • {exercise.equipment}
+                              </p>
+                            </div>
+                            <span className="h-6 w-6 rounded-lg bg-muted flex-shrink-0 group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center transition-colors">
+                              <Plus className="h-3 w-3" />
+                            </span>
                           </div>
-                          <span className="h-6 w-6 rounded-lg bg-muted flex-shrink-0 group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center transition-colors">
-                            <Plus className="h-3 w-3" />
-                          </span>
-                        </div>
-                      </button>
-                    ))}
+                        </button>
+                      );
+                    })}
                   </div>
 
                   <button
@@ -512,10 +605,34 @@ export const QuickLog: React.FC = () => {
             </div>
 
             {selectedExercises.length === 0 ? (
-              <div className="border border-dashed border-border rounded-2xl p-8 text-center text-muted-foreground bg-muted/5">
-                <ListChecks className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-                <p className="text-xs font-bold text-foreground">Workout log is empty</p>
-                <p className="text-[10px] mt-1 text-muted-foreground">Select movements from the library to configure exercises.</p>
+              <div className="border border-dashed border-border rounded-2xl p-10 text-center text-muted-foreground bg-muted/5 space-y-4">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-muted/20 text-primary border border-border">
+                  <ListChecks className="h-6 w-6" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-black text-foreground">Your Workout is Empty</p>
+                  <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+                    Search for movements in the library on the left, load a template, or add a custom exercise to begin.
+                  </p>
+                </div>
+                <div className="pt-2 flex flex-col sm:flex-row gap-2 justify-center">
+                  <button
+                    type="button"
+                    onClick={addBlankExercise}
+                    className="px-4 py-2 text-xs font-bold rounded-xl bg-muted/30 text-foreground hover:bg-muted/50 transition-all active:scale-[0.98] border border-border"
+                  >
+                    + Custom Exercise
+                  </button>
+                  {templates.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleTemplateSelect(templates[0])}
+                      className="px-4 py-2 text-xs font-bold rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all active:scale-[0.98]"
+                    >
+                      Quick Start: {templates[0].name || templates[0].title}
+                    </button>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
@@ -526,20 +643,35 @@ export const QuickLog: React.FC = () => {
                         {exerciseIndex + 1}
                       </span>
                       <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <input
-                          value={exercise.exerciseName}
-                          onChange={(e) => updateExercise(exercise.localId, { exerciseName: e.target.value })}
-                          className="sm:col-span-2 text-xs p-2 rounded-lg border border-border bg-input-background font-bold text-foreground focus:border-primary outline-none"
-                        />
-                        <div className="flex items-center gap-2">
+                        <div className="sm:col-span-2">
                           <input
-                            type="number"
-                            min="1"
-                            value={exercise.duration}
-                            onChange={(e) => updateExercise(exercise.localId, { duration: Number(e.target.value) || 0 })}
-                            className="w-full text-xs p-2 rounded-lg border border-border bg-input-background focus:border-primary outline-none"
+                            value={exercise.exerciseName}
+                            onChange={(e) => updateExercise(exercise.localId, { exerciseName: e.target.value })}
+                            className={`w-full text-xs p-2 rounded-lg border bg-input-background font-bold text-foreground focus:border-primary outline-none ${
+                              validationErrors[`name_${exercise.localId}`] ? 'border-destructive focus:border-destructive' : 'border-border'
+                            }`}
+                            placeholder="Exercise Name"
                           />
-                          <span className="text-[10px] font-bold text-muted-foreground">min</span>
+                          {validationErrors[`name_${exercise.localId}`] && (
+                            <p className="text-[10px] text-destructive mt-1 font-semibold">{validationErrors[`name_${exercise.localId}`]}</p>
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="1"
+                              value={exercise.duration}
+                              onChange={(e) => updateExercise(exercise.localId, { duration: Number(e.target.value) || 0 })}
+                              className={`w-full text-xs p-2 rounded-lg border bg-input-background focus:border-primary outline-none ${
+                                validationErrors[`duration_${exercise.localId}`] ? 'border-destructive focus:border-destructive' : 'border-border'
+                              }`}
+                            />
+                            <span className="text-[10px] font-bold text-muted-foreground">min</span>
+                          </div>
+                          {validationErrors[`duration_${exercise.localId}`] && (
+                            <p className="text-[10px] text-destructive mt-1 font-semibold">{validationErrors[`duration_${exercise.localId}`]}</p>
+                          )}
                         </div>
                       </div>
                       <button
@@ -552,47 +684,130 @@ export const QuickLog: React.FC = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <div className="grid grid-cols-[30px_1fr_1fr_30px] gap-2 text-[9px] uppercase font-bold text-muted-foreground px-1">
+                      <div className="grid grid-cols-[24px_1fr_1.8fr_24px] gap-2 text-[9px] uppercase font-bold text-muted-foreground px-1">
                         <span>Set</span>
-                        <span>Reps</span>
-                        <span>Weight kg</span>
+                        <span className="text-center">Reps</span>
+                        <span className="text-center">Weight kg</span>
                         <span />
                       </div>
                       {exercise.sets.map((set, setIndex) => (
-                        <div key={`${exercise.localId}_${setIndex}`} className="grid grid-cols-[30px_1fr_1fr_30px] gap-2 items-center">
+                        <div key={`${exercise.localId}_${setIndex}`} className="grid grid-cols-[24px_1fr_1.8fr_24px] gap-2 items-center">
                           <span className="text-xs font-mono font-bold text-muted-foreground">#{setIndex + 1}</span>
-                          <input
-                            type="number"
-                            min="0"
-                            value={set.reps}
-                            onChange={(e) => updateSet(exercise.localId, setIndex, { reps: Number(e.target.value) || 0 })}
-                            className="text-xs p-2 rounded-lg border border-border bg-input-background focus:border-primary outline-none text-center"
-                          />
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.5"
-                            value={set.weight}
-                            onChange={(e) => updateSet(exercise.localId, setIndex, { weight: Number(e.target.value) || 0 })}
-                            className="text-xs p-2 rounded-lg border border-border bg-input-background focus:border-primary outline-none text-center"
-                          />
+                          
+                          {/* Reps Stepper */}
+                          <div className="space-y-1">
+                            <div className={`flex items-center border bg-input-background rounded-lg overflow-hidden h-9 ${
+                              validationErrors[`reps_${exercise.localId}_${setIndex}`] ? 'border-destructive' : 'border-border'
+                            }`}>
+                              <button
+                                type="button"
+                                onClick={() => updateSet(exercise.localId, setIndex, { reps: Math.max(0, set.reps - 1) })}
+                                className="px-2 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-extrabold active:scale-95 transition-all text-xs"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                min="0"
+                                value={set.reps}
+                                onChange={(e) => updateSet(exercise.localId, setIndex, { reps: Math.max(0, Number(e.target.value) || 0) })}
+                                className="w-full h-full text-center bg-transparent border-0 outline-none text-xs font-bold font-mono focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => updateSet(exercise.localId, setIndex, { reps: set.reps + 1 })}
+                                className="px-2 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-extrabold active:scale-95 transition-all text-xs"
+                              >
+                                +
+                              </button>
+                            </div>
+                            {validationErrors[`reps_${exercise.localId}_${setIndex}`] && (
+                              <p className="text-[8px] text-destructive text-center font-semibold leading-tight">{validationErrors[`reps_${exercise.localId}_${setIndex}`]}</p>
+                            )}
+                          </div>
+
+                          {/* Weight Stepper */}
+                          <div className="space-y-1">
+                            <div className={`flex items-center border bg-input-background rounded-lg overflow-hidden h-9 ${
+                              validationErrors[`weight_${exercise.localId}_${setIndex}`] ? 'border-destructive' : 'border-border'
+                            }`}>
+                              <button
+                                type="button"
+                                onClick={() => updateSet(exercise.localId, setIndex, { weight: Math.max(0, set.weight - 2.5) })}
+                                className="px-1.5 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium active:scale-95 transition-all text-[9px] border-r border-border"
+                              >
+                                -2.5
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => updateSet(exercise.localId, setIndex, { weight: Math.max(0, set.weight - 1) })}
+                                className="px-1.5 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-extrabold active:scale-95 transition-all text-xs"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.5"
+                                value={set.weight}
+                                onChange={(e) => updateSet(exercise.localId, setIndex, { weight: Math.max(0, Number(e.target.value) || 0) })}
+                                className="w-full h-full text-center bg-transparent border-0 outline-none text-xs font-bold font-mono focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => updateSet(exercise.localId, setIndex, { weight: set.weight + 1 })}
+                                className="px-1.5 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-extrabold active:scale-95 transition-all text-xs"
+                              >
+                                +
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => updateSet(exercise.localId, setIndex, { weight: set.weight + 2.5 })}
+                                className="px-1.5 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium active:scale-95 transition-all text-[9px] border-l border-border"
+                              >
+                                +2.5
+                              </button>
+                            </div>
+                            {validationErrors[`weight_${exercise.localId}_${setIndex}`] && (
+                              <p className="text-[8px] text-destructive text-center font-semibold leading-tight">{validationErrors[`weight_${exercise.localId}_${setIndex}`]}</p>
+                            )}
+                          </div>
+
                           <button
                             type="button"
                             onClick={() => removeSet(exercise.localId, setIndex)}
                             disabled={exercise.sets.length <= 1}
-                            className="p-1.5 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-20"
+                            className="p-1.5 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-20 flex justify-center items-center justify-self-center"
                           >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       ))}
-                      <button
-                        type="button"
-                        onClick={() => addSet(exercise.localId)}
-                        className="text-xs font-bold text-primary hover:opacity-85 mt-1 block"
-                      >
-                        + Add Set
-                      </button>
+
+                      <div className="flex items-center gap-3 mt-1.5 px-1">
+                        <button
+                          type="button"
+                          onClick={() => addSet(exercise.localId)}
+                          className="text-[11px] font-bold text-primary hover:underline transition-all"
+                        >
+                          + Add Set
+                        </button>
+                        <span className="text-muted-foreground/30 text-[10px]">•</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const last = exercise.sets[exercise.sets.length - 1] || { reps: 10, weight: 0 };
+                            setSelectedExercises((current) =>
+                              current.map((ex) =>
+                                ex.localId === exercise.localId ? { ...ex, sets: [...ex.sets, { ...last }] } : ex
+                              )
+                            );
+                          }}
+                          className="text-[11px] font-bold text-muted-foreground hover:text-foreground transition-all flex items-center gap-1"
+                        >
+                          <Copy className="h-3 w-3" /> Duplicate Last Set
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
