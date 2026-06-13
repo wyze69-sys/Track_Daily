@@ -11,4 +11,13 @@ export type DraftExercise = {
   muscleGroup?: string;
   duration: number;
   sets: DraftSet[];
+  trackingType?: string;
+  distance?: number;
+  pace?: string;
+  calories?: number;
+  focusArea?: string;
+  difficulty?: string;
+  intensity?: string;
+  notes?: string;
+  restTime?: number;
 };

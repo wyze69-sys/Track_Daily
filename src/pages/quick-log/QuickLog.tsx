@@ -15,6 +15,7 @@ import { ActivitySearchPanel } from './components/ActivitySearchPanel';
 import { TemplatePicker } from './components/TemplatePicker';
 import { SelectedExerciseCard } from './components/SelectedExerciseCard';
 import { WorkoutSummaryPanel } from './components/WorkoutSummaryPanel';
+import { getTrackingType } from './components/TrackingFields';
 
 const makeId = () => `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -50,7 +51,10 @@ export const QuickLog: React.FC = () => {
     [selectedExercises]
   );
   const totalSets = useMemo(
-    () => selectedExercises.reduce((sum, ex) => sum + ex.sets.length, 0),
+    () => selectedExercises.reduce((sum, ex) => {
+      const trackingType = ex.trackingType || getTrackingType(ex);
+      return trackingType === 'sets_reps_weight' ? sum + ex.sets.length : sum;
+    }, 0),
     [selectedExercises]
   );
 
@@ -71,6 +75,7 @@ export const QuickLog: React.FC = () => {
   const addExerciseFromLibrary = (exercise: any) => {
     setSelectedTemplateId(null);
     setWorkoutType(exercise.categoryName || workoutType);
+    const trackingType = exercise.trackingType || 'sets_reps_weight';
     setSelectedExercises((cur) => [
       ...cur,
       {
@@ -81,20 +86,31 @@ export const QuickLog: React.FC = () => {
         categoryName: exercise.categoryName || undefined,
         muscleGroup: exercise.muscleGroup || (exercise.tags && exercise.tags[0]) || 'General',
         duration: exercise.defaultDuration || 10,
+        trackingType,
         sets:
-          exercise.exerciseType === 'cardio' || exercise.trackingType === 'duration_distance'
-            ? [{ reps: 1, weight: 0 }]
-            : [
+          trackingType === 'sets_reps_weight'
+            ? [
                 { reps: 10, weight: 0 },
                 { reps: 10, weight: 0 },
                 { reps: 10, weight: 0 }
               ]
+            : [{ reps: 1, weight: 0 }]
       }
     ]);
   };
 
   const addBlankExercise = () => {
     const category = activeCategory || categories[0];
+    const categoryName = category?.name || workoutType;
+    let trackingType = 'sets_reps_weight';
+    if (categoryName === 'Cardio') {
+      trackingType = 'duration_distance';
+    } else if (categoryName === 'Flexibility & Yoga' || categoryName === 'Flexibility / Mobility') {
+      trackingType = 'duration_focus';
+    } else if (categoryName === 'Sports') {
+      trackingType = 'duration_intensity';
+    }
+
     setSelectedTemplateId(null);
     setSelectedExercises((cur) => [
       ...cur,
@@ -102,10 +118,17 @@ export const QuickLog: React.FC = () => {
         localId: makeId(),
         exerciseName: 'Custom Exercise',
         categoryId: category?.id,
-        categoryName: category?.name || workoutType,
+        categoryName: categoryName,
         muscleGroup: 'Custom',
         duration: 10,
-        sets: [{ reps: 10, weight: 0 }]
+        trackingType,
+        sets: trackingType === 'sets_reps_weight'
+          ? [
+              { reps: 10, weight: 0 },
+              { reps: 10, weight: 0 },
+              { reps: 10, weight: 0 }
+            ]
+          : [{ reps: 1, weight: 0 }]
       }
     ]);
   };
@@ -207,17 +230,29 @@ export const QuickLog: React.FC = () => {
     setSuccess(`Loaded template '${tpl.name || tpl.title}'.`);
     setError(null);
 
-    const draftExercises: DraftExercise[] = (tpl.exercises || []).map((ex) => ({
-      localId: makeId(),
-      exerciseName: ex.exerciseName || 'Template Exercise',
-      categoryId: ex.categoryId || (tpl as any).categoryId,
-      categoryName: ex.categoryName || tpl.categoryName || tpl.category,
-      duration: Number(ex.duration || 10),
-      sets: (ex.sets && ex.sets.length > 0 ? ex.sets : [{ reps: 10, weight: 0 }]).map((s) => ({
-        reps: Number(s.reps || 0),
-        weight: Number(s.weight || 0)
-      }))
-    }));
+    const draftExercises: DraftExercise[] = (tpl.exercises || []).map((ex) => {
+      const trackingType = ex.trackingType || getTrackingType(ex);
+      return {
+        localId: makeId(),
+        exerciseName: ex.exerciseName || 'Template Exercise',
+        categoryId: ex.categoryId || (tpl as any).categoryId,
+        categoryName: ex.categoryName || tpl.categoryName || tpl.category,
+        duration: Number(ex.duration || 10),
+        trackingType,
+        sets: (ex.sets && ex.sets.length > 0 ? ex.sets : [{ reps: 10, weight: 0 }]).map((s) => ({
+          reps: Number(s.reps || 0),
+          weight: Number(s.weight || 0)
+        })),
+        distance: ex.distance,
+        pace: ex.pace,
+        calories: ex.calories,
+        focusArea: ex.focusArea,
+        difficulty: ex.difficulty,
+        intensity: ex.intensity,
+        notes: ex.notes,
+        restTime: ex.restTime
+      };
+    });
 
     if (draftExercises.length > 0) setSelectedExercises(draftExercises);
   };
@@ -225,16 +260,30 @@ export const QuickLog: React.FC = () => {
   // ── Build payload ───────────────────────────────────────────────
 
   const buildWorkoutExercises = (): WorkoutExercise[] =>
-    selectedExercises.map((ex) => ({
-      categoryId: ex.categoryId || activeCategory?.id,
-      categoryName: ex.categoryName || activeCategory?.name || workoutType,
-      exerciseName: ex.exerciseName.trim(),
-      duration: Number(ex.duration || 0),
-      sets: ex.sets.map((s) => ({
-        reps: Number(s.reps || 0),
-        weight: Number(s.weight || 0)
-      }))
-    }));
+    selectedExercises.map((ex) => {
+      const trackingType = ex.trackingType || getTrackingType(ex);
+      return {
+        categoryId: ex.categoryId || activeCategory?.id,
+        categoryName: ex.categoryName || activeCategory?.name || workoutType,
+        exerciseName: ex.exerciseName.trim(),
+        duration: Number(ex.duration || 0),
+        trackingType,
+        sets: trackingType === 'sets_reps_weight'
+          ? ex.sets.map((s) => ({
+              reps: Number(s.reps || 0),
+              weight: Number(s.weight || 0)
+            }))
+          : [],
+        distance: trackingType === 'duration_distance' ? (ex.distance !== undefined ? Number(ex.distance) : undefined) : undefined,
+        pace: trackingType === 'duration_distance' ? ex.pace : undefined,
+        calories: trackingType === 'duration_distance' ? (ex.calories !== undefined ? Number(ex.calories) : undefined) : undefined,
+        focusArea: trackingType === 'duration_focus' ? ex.focusArea : undefined,
+        difficulty: trackingType === 'duration_focus' ? ex.difficulty : undefined,
+        intensity: trackingType === 'duration_intensity' ? ex.intensity : undefined,
+        notes: (trackingType === 'duration_focus' || trackingType === 'duration_intensity') ? ex.notes : undefined,
+        restTime: trackingType === 'sets_reps_weight' ? (ex.restTime !== undefined ? Number(ex.restTime) : undefined) : undefined,
+      };
+    });
 
   // ── Save template ───────────────────────────────────────────────
 
@@ -282,11 +331,15 @@ export const QuickLog: React.FC = () => {
     selectedExercises.forEach((ex) => {
       if (!ex.exerciseName.trim()) newErrors[`name_${ex.localId}`] = 'Exercise name is required';
       if (ex.duration <= 0) newErrors[`duration_${ex.localId}`] = 'Duration must be greater than 0';
-      if (ex.sets.length === 0) newErrors[`sets_${ex.localId}`] = 'At least one set is required';
-      ex.sets.forEach((s, sIdx) => {
-        if (s.reps < 1) newErrors[`reps_${ex.localId}_${sIdx}`] = 'Reps must be >= 1';
-        if (s.weight < 0) newErrors[`weight_${ex.localId}_${sIdx}`] = 'Weight cannot be negative';
-      });
+
+      const trackingType = ex.trackingType || getTrackingType(ex);
+      if (trackingType === 'sets_reps_weight') {
+        if (ex.sets.length === 0) newErrors[`sets_${ex.localId}`] = 'At least one set is required';
+        ex.sets.forEach((s, sIdx) => {
+          if (s.reps < 1) newErrors[`reps_${ex.localId}_${sIdx}`] = 'Reps must be >= 1';
+          if (s.weight < 0) newErrors[`weight_${ex.localId}_${sIdx}`] = 'Weight cannot be negative';
+        });
+      }
     });
 
     if (Object.keys(newErrors).length > 0) {

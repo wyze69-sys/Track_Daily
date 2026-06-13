@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, Edit2, Trash2 } from 'lucide-react';
 import { Workout } from '../../../services/api';
 import { getMoodStyle, getCategoryColor, aggregateSetMetrics } from '../utils/historyMetrics';
+import { WorkoutTypeSummary } from './WorkoutTypeSummary';
 
 interface WorkoutTimelineCardProps {
   workout: Workout;
@@ -82,17 +83,7 @@ export const WorkoutTimelineCard: React.FC<WorkoutTimelineCardProps> = ({ workou
                         <span className="text-xs font-bold text-foreground truncate">{exercise.exerciseName}</span>
                         <span className="text-[9px] font-mono font-bold text-muted-foreground">{exercise.duration}m</span>
                       </div>
-                      {exercise.sets && exercise.sets.length > 0 ? (
-                        <div className="flex flex-wrap gap-1 mt-0.5">
-                          {exercise.sets.map((set: any, setIndex: number) => (
-                            <span key={setIndex} className="text-[8px] font-mono font-medium bg-muted px-1.5 py-0.2 rounded border border-border">
-                              S{setIndex + 1}: {set.reps}r {set.weight ? `@ ${set.weight}kg` : ''}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-[8px] text-muted-foreground italic">No sets recorded</span>
-                      )}
+                      <WorkoutTypeSummary exercise={exercise} />
                     </div>
                   ))}
                 </div>

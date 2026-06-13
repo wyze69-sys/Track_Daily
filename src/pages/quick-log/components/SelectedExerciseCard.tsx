@@ -1,6 +1,7 @@
 import React from 'react';
-import { Trash2, Copy } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { DraftExercise, DraftSet } from '../types';
+import { TrackingFields } from './TrackingFields';
 
 interface SelectedExerciseCardProps {
   exercise: DraftExercise;
@@ -73,116 +74,15 @@ export const SelectedExerciseCard: React.FC<SelectedExerciseCardProps> = ({
         </button>
       </div>
 
-      {/* Sets Table */}
-      <div className="space-y-2">
-        <div className="grid grid-cols-[24px_1fr_1.8fr_24px] gap-2 text-[9px] uppercase font-bold text-muted-foreground px-1">
-          <span>Set</span>
-          <span className="text-center">Reps</span>
-          <span className="text-center">Weight kg</span>
-          <span />
-        </div>
-
-        {exercise.sets.map((set, setIndex) => (
-          <div key={`${exercise.localId}_${setIndex}`} className="grid grid-cols-[24px_1fr_1.8fr_24px] gap-2 items-center">
-            <span className="text-xs font-mono font-bold text-muted-foreground">#{setIndex + 1}</span>
-
-            {/* Reps Stepper */}
-            <div className="space-y-1">
-              <div className={`flex items-center border bg-input-background rounded-lg overflow-hidden h-9 ${
-                validationErrors[`reps_${exercise.localId}_${setIndex}`] ? 'border-destructive' : 'border-border'
-              }`}>
-                <button
-                  type="button"
-                  onClick={() => onUpdateSet(exercise.localId, setIndex, { reps: Math.max(0, set.reps - 1) })}
-                  className="px-2 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-extrabold active:scale-95 transition-all text-xs"
-                >-</button>
-                <input
-                  type="number"
-                  min="0"
-                  value={set.reps}
-                  onChange={(e) => onUpdateSet(exercise.localId, setIndex, { reps: Math.max(0, Number(e.target.value) || 0) })}
-                  className="w-full h-full text-center bg-transparent border-0 outline-none text-xs font-bold font-mono focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => onUpdateSet(exercise.localId, setIndex, { reps: set.reps + 1 })}
-                  className="px-2 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-extrabold active:scale-95 transition-all text-xs"
-                >+</button>
-              </div>
-              {validationErrors[`reps_${exercise.localId}_${setIndex}`] && (
-                <p className="text-[8px] text-destructive text-center font-semibold leading-tight">{validationErrors[`reps_${exercise.localId}_${setIndex}`]}</p>
-              )}
-            </div>
-
-            {/* Weight Stepper */}
-            <div className="space-y-1">
-              <div className={`flex items-center border bg-input-background rounded-lg overflow-hidden h-9 ${
-                validationErrors[`weight_${exercise.localId}_${setIndex}`] ? 'border-destructive' : 'border-border'
-              }`}>
-                <button
-                  type="button"
-                  onClick={() => onUpdateSet(exercise.localId, setIndex, { weight: Math.max(0, set.weight - 2.5) })}
-                  className="px-1.5 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium active:scale-95 transition-all text-[9px] border-r border-border"
-                >-2.5</button>
-                <button
-                  type="button"
-                  onClick={() => onUpdateSet(exercise.localId, setIndex, { weight: Math.max(0, set.weight - 1) })}
-                  className="px-1.5 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-extrabold active:scale-95 transition-all text-xs"
-                >-</button>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  value={set.weight}
-                  onChange={(e) => onUpdateSet(exercise.localId, setIndex, { weight: Math.max(0, Number(e.target.value) || 0) })}
-                  className="w-full h-full text-center bg-transparent border-0 outline-none text-xs font-bold font-mono focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => onUpdateSet(exercise.localId, setIndex, { weight: set.weight + 1 })}
-                  className="px-1.5 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-extrabold active:scale-95 transition-all text-xs"
-                >+</button>
-                <button
-                  type="button"
-                  onClick={() => onUpdateSet(exercise.localId, setIndex, { weight: set.weight + 2.5 })}
-                  className="px-1.5 h-full hover:bg-muted/30 text-muted-foreground hover:text-foreground font-medium active:scale-95 transition-all text-[9px] border-l border-border"
-                >+2.5</button>
-              </div>
-              {validationErrors[`weight_${exercise.localId}_${setIndex}`] && (
-                <p className="text-[8px] text-destructive text-center font-semibold leading-tight">{validationErrors[`weight_${exercise.localId}_${setIndex}`]}</p>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onRemoveSet(exercise.localId, setIndex)}
-              disabled={exercise.sets.length <= 1}
-              className="p-1.5 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-20 flex justify-center items-center justify-self-center"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ))}
-
-        {/* Set Action Buttons */}
-        <div className="flex items-center gap-3 mt-1.5 px-1">
-          <button
-            type="button"
-            onClick={() => onAddSet(exercise.localId)}
-            className="text-[11px] font-bold text-primary hover:underline transition-all"
-          >
-            + Add Set
-          </button>
-          <span className="text-muted-foreground/30 text-[10px]">•</span>
-          <button
-            type="button"
-            onClick={() => onDuplicateLastSet(exercise.localId)}
-            className="text-[11px] font-bold text-muted-foreground hover:text-foreground transition-all flex items-center gap-1"
-          >
-            <Copy className="h-3 w-3" /> Duplicate Last Set
-          </button>
-        </div>
-      </div>
+      <TrackingFields
+        exercise={exercise}
+        validationErrors={validationErrors}
+        onUpdateExercise={onUpdateExercise}
+        onUpdateSet={onUpdateSet}
+        onAddSet={onAddSet}
+        onRemoveSet={onRemoveSet}
+        onDuplicateLastSet={onDuplicateLastSet}
+      />
     </div>
   );
 };

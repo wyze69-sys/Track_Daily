@@ -13,6 +13,15 @@ export interface WorkoutExercise {
   duration: number;
   caloriesBurned?: number;
   sets: WorkoutSet[];
+  trackingType?: string;
+  distance?: number;
+  pace?: string;
+  calories?: number;
+  focusArea?: string;
+  difficulty?: string;
+  intensity?: string;
+  notes?: string;
+  restTime?: number;
 }
 
 export interface Workout {
