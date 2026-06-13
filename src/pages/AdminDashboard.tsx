@@ -1,247 +1,444 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { adminService, feedbackService, AdminDashboardData } from '../services/api';
-import { PageContainer } from '../components/layout/PageContainer';
 import {
-  AlertCircle,
-  Check,
-  ChevronRight,
+  adminService,
+  feedbackService,
+  categoryService,
+  templateService,
+  AdminDashboardData,
+  ExerciseCategory,
+  WorkoutTemplate,
+  Feedback
+} from '../services/api';
+import { PageContainer } from '../components/layout/PageContainer';
+import { useAuth } from '../context/AuthContext';
+import {
   Loader2,
-  MessageSquare,
-  MoreHorizontal,
-  Plus,
-  Search,
-  Shield,
-  Tag,
+  ShieldAlert,
+  ArrowRight,
+  RefreshCw,
+  Users,
+  Flame,
+  Dumbbell,
   Trophy,
-  Users
+  Tag,
+  FileCode2,
+  Megaphone,
+  MessageSquare,
+  Check,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Shield
 } from 'lucide-react';
 
-const statusBadge = (status: string) => {
-  const map: Record<string, { bg: string; color: string }> = {
-    active: { bg: 'rgba(163,230,53,0.12)', color: '#a3e635' },
-    pending: { bg: 'rgba(249,115,22,0.12)', color: '#f97316' },
-    reviewed: { bg: 'rgba(56,189,248,0.12)', color: '#38bdf8' },
-    resolved: { bg: 'rgba(163,230,53,0.12)', color: '#a3e635' }
-  };
-  const style = map[status] || { bg: 'rgba(136,136,160,0.12)', color: '#8888a0' };
-  return (
-    <span className="rounded px-2 py-0.5 text-xs capitalize" style={{ background: style.bg, color: style.color, fontWeight: 600 }}>
-      {status}
-    </span>
-  );
-};
-
 export const AdminDashboard: React.FC = () => {
+  const { user } = useAuth();
   const [data, setData] = useState<AdminDashboardData | null>(null);
+  const [categories, setCategories] = useState<ExerciseCategory[]>([]);
+  const [templates, setTemplates] = useState<WorkoutTemplate[]>([]);
+  const [feedbackQueue, setFeedbackQueue] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<'overview' | 'categories' | 'feedback'>('overview');
-  const [search, setSearch] = useState('');
+  const [activeSummaryTab, setActiveSummaryTab] = useState<'categories' | 'templates'>('categories');
 
-  const fetchDashboard = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const dbData = await adminService.getDashboard();
+      setLoading(true);
+      const [dbData, catList, tplList, fbList] = await Promise.all([
+        adminService.getDashboard(),
+        categoryService.getAll(),
+        templateService.getAll(),
+        feedbackService.getAll()
+      ]);
+      
       setData(dbData);
+      setCategories(catList);
+      setTemplates(tplList);
+      setFeedbackQueue(fbList);
       setError(null);
     } catch (err) {
       console.error('Failed to load admin summary indicators', err);
-      setError('Failed to load admin data.');
+      setError('Failed to load real data from backend API.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDashboard();
+    fetchDashboardData();
   }, []);
 
   const handleResolveFeedback = async (id: string) => {
     try {
       await feedbackService.updateStatus(id, 'reviewed');
-      await fetchDashboard();
+      // Proactively reload the feedback list and dashboard statistics
+      const [dbData, fbList] = await Promise.all([
+        adminService.getDashboard(),
+        feedbackService.getAll()
+      ]);
+      setData(dbData);
+      setFeedbackQueue(fbList);
     } catch (err) {
       console.error('Failed to resolve feedback status', err);
-      setError('Could not mark feedback as reviewed.');
+      setError('Could not update feedback report status.');
     }
   };
 
-  const filteredFeedback = useMemo(() => {
-    if (!data) return [];
-    const q = search.trim().toLowerCase();
-    return data.recentFeedback.filter((item) =>
-      item.userName.toLowerCase().includes(q) || item.content.toLowerCase().includes(q)
-    );
-  }, [data, search]);
+  const getCategoryIcon = (iconName?: string) => {
+    switch (iconName?.toLowerCase()) {
+      case 'dumbbell': return <Dumbbell className="h-4 w-4" />;
+      case 'flame': return <Flame className="h-4 w-4" />;
+      case 'sparkles': return <Trophy className="h-4 w-4" />;
+      case 'trophy': return <Trophy className="h-4 w-4" />;
+      case 'grid': return <Tag className="h-4 w-4" />;
+      default: return <Tag className="h-4 w-4" />;
+    }
+  };
 
   if (loading) {
     return (
       <PageContainer>
-        <div className="flex items-center justify-center py-24">
+        <div className="flex h-[60vh] w-full flex-col items-center justify-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading admin data...</p>
         </div>
       </PageContainer>
     );
   }
 
+  // Filter feedback queue to show pending items first, or highlight them
+  const pendingFeedback = feedbackQueue.filter(f => f.status === 'pending');
+
   return (
     <PageContainer>
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: 'rgba(251,191,36,0.12)' }}>
-            <Shield size={20} color="#fbbf24" />
+        {/* Header Section */}
+        <div 
+          className="flex flex-col gap-4 rounded-xl p-5 lg:flex-row lg:items-center lg:justify-between"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+              <Shield className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black text-foreground">Admin Console</h1>
+              <p className="text-xs text-muted-foreground">Manage platform categories, workout templates, and student issues.</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-foreground">Admin Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Students, workouts, feedback, and content</p>
+          <div className="flex flex-wrap items-center gap-4">
+            {user && (
+              <div className="text-xs font-semibold text-muted-foreground">
+                Signed in as: <span className="font-bold text-foreground">{user.fullName} ({user.email})</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+              <span>Online</span>
+            </div>
+            <button
+              onClick={fetchDashboardData}
+              className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-xs font-bold text-foreground transition-all hover:bg-muted"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Refresh
+            </button>
           </div>
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-xl p-4 text-sm" style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}>
-            <AlertCircle size={16} /> {error}
+          <div className="flex items-center justify-between rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-xs text-red-400">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} />
+              <span>{error}</span>
+            </div>
+            <button 
+              onClick={fetchDashboardData}
+              className="flex items-center gap-1 font-bold uppercase tracking-wider text-red-300 hover:text-red-200"
+            >
+              <RefreshCw size={12} /> Retry
+            </button>
           </div>
         )}
 
         {data && (
           <>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {/* KPI Cards Grid */}
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               {[
-                { label: 'Total Users', value: data.totalUsersCount, sub: 'Registered accounts' },
-                { label: 'Active Streaks', value: data.activeStreakCount, sub: 'Users with a streak' },
-                { label: 'Workouts Logged', value: data.totalWorkoutsCount, sub: 'Workout records' },
-                { label: 'XP Awarded', value: data.totalXpEarned, sub: 'Total earned XP' }
+                { label: 'Total Users', value: data.totalUsersCount ?? 0, sub: 'Registered student accounts', icon: Users, color: '#38bdf8', bg: 'rgba(56,189,248,0.08)' },
+                { label: 'Active Streaks', value: data.activeStreakCount ?? 0, sub: 'Students with active streaks', icon: Flame, color: '#f97316', bg: 'rgba(249,115,22,0.08)' },
+                { label: 'Workouts Logged', value: data.totalWorkoutsCount ?? 0, sub: 'All-time workout entries', icon: Dumbbell, color: '#a3e635', bg: 'rgba(163,230,53,0.08)' },
+                { label: 'XP Awarded', value: data.totalXpEarned ?? 0, sub: 'Experience points earned', icon: Trophy, color: '#fbbf24', bg: 'rgba(251,191,36,0.08)' }
               ].map((stat) => (
-                <div key={stat.label} className="rounded-xl p-4" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-                  <p className="mb-1 text-xs uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                  <p className="text-2xl font-extrabold leading-tight text-foreground">{stat.value}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{stat.sub}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex w-fit flex-wrap gap-1 rounded-xl p-0.5" style={{ background: 'var(--muted)' }}>
-              {(['overview', 'categories', 'feedback'] as const).map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setTab(item)}
-                  className="rounded-lg px-4 py-1.5 text-sm capitalize transition-all"
-                  style={{
-                    background: tab === item ? '#a3e635' : 'transparent',
-                    color: tab === item ? '#09090f' : 'var(--muted-foreground)',
-                    fontWeight: tab === item ? 700 : 400
-                  }}
+                <div 
+                  key={stat.label} 
+                  className="rounded-xl p-5" 
+                  style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
                 >
-                  {item}
-                </button>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</span>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: stat.bg }}>
+                      <stat.icon size={15} color={stat.color} />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-black text-foreground">{stat.value.toLocaleString()}</div>
+                  <span className="mt-1 block text-[10px] text-muted-foreground">{stat.sub}</span>
+                </div>
               ))}
             </div>
 
-            {tab === 'overview' && (
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <Link to="/admin/users" className="rounded-xl p-5 transition-colors hover:bg-white/[0.03]" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Users size={20} color="#a3e635" />
-                      <div>
-                        <h3 className="text-foreground">User Management</h3>
-                        <p className="text-sm text-muted-foreground">Review student accounts and roles</p>
-                      </div>
+            {/* Split Content Layout */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              {/* Left Column (Content and Action Queue) */}
+              <div className="space-y-6 lg:col-span-2">
+                
+                {/* Real User Feedback Queue */}
+                <div 
+                  className="rounded-xl border border-border overflow-hidden" 
+                  style={{ background: 'var(--card)' }}
+                >
+                  <div className="border-b border-border px-5 py-4 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-black text-foreground">User Feedback Queue</h3>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Triage and review feedback reports submitted by students.</p>
                     </div>
-                    <ChevronRight size={18} className="text-muted-foreground" />
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                      {pendingFeedback.length} Pending
+                    </span>
                   </div>
-                </Link>
-                <Link to="/admin/challenges" className="rounded-xl p-5 transition-colors hover:bg-white/[0.03]" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Trophy size={20} color="#fbbf24" />
-                      <div>
-                        <h3 className="text-foreground">Challenges & Badges</h3>
-                        <p className="text-sm text-muted-foreground">Manage gamified content</p>
-                      </div>
-                    </div>
-                    <ChevronRight size={18} className="text-muted-foreground" />
-                  </div>
-                </Link>
-              </div>
-            )}
 
-            {tab === 'categories' && (
-              <div>
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-foreground">Exercise Categories</h3>
-                  <Link to="/admin/categories" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition-all hover:brightness-110" style={{ background: '#a3e635', color: '#09090f' }}>
-                    <Plus size={14} /> Add Category
-                  </Link>
-                </div>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {data.categories.map((category) => (
-                    <div key={category.id} className="rounded-xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-                      <div className="mb-3 flex items-center justify-between">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: 'rgba(163,230,53,0.12)' }}>
-                          <Tag size={20} color="#a3e635" />
-                        </div>
-                        <button className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                          <MoreHorizontal size={13} />
-                        </button>
+                  <div className="divide-y divide-border">
+                    {feedbackQueue.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center p-8 text-center">
+                        <CheckCircle2 className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-xs font-semibold text-foreground">Feedback Queue Clear</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">No user feedback reports have been submitted yet.</p>
                       </div>
-                      <p className="font-bold text-foreground">{category.name}</p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">Exercise group</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {tab === 'feedback' && (
-              <div className="rounded-xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-                <div className="flex items-center justify-between p-5 pb-4">
-                  <h3 className="text-foreground">User Feedback</h3>
-                  <div className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: 'var(--input-background)' }}>
-                    <Search size={13} className="text-muted-foreground" />
-                    <input
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search feedback..."
-                      className="w-40 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-0">
-                  {filteredFeedback.length === 0 ? (
-                    <p className="p-8 text-center text-sm text-muted-foreground">No feedback found.</p>
-                  ) : filteredFeedback.map((feedback, index) => (
-                    <div key={feedback.id} className="flex items-start justify-between gap-4 px-5 py-4 transition-colors hover:bg-white/[0.02]" style={{ borderTop: index > 0 ? '1px solid var(--border)' : undefined }}>
-                      <div className="flex min-w-0 flex-1 items-start gap-3">
-                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: 'rgba(56,189,248,0.1)' }}>
-                          <MessageSquare size={14} color="#38bdf8" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="mb-1 flex items-center gap-2">
-                            <p className="text-sm font-bold text-foreground">{feedback.userName}</p>
-                            <span className="text-xs text-muted-foreground">{new Date(feedback.date).toLocaleDateString()}</span>
+                    ) : pendingFeedback.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center p-8 text-center">
+                        <CheckCircle2 className="h-8 w-8 text-primary mb-2" />
+                        <p className="text-xs font-semibold text-foreground">All Feedback Reviewed</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">All reports are marked reviewed. Good job keeping the queue clean!</p>
+                      </div>
+                    ) : (
+                      pendingFeedback.map((fb) => (
+                        <div key={fb.id} className="p-4 flex items-start justify-between gap-4 transition-colors hover:bg-white/[0.01]">
+                          <div className="space-y-1.5 min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs font-bold text-foreground">{fb.userName}</span>
+                              <span className="text-[10px] text-muted-foreground">
+                                {new Date(fb.date).toLocaleDateString(undefined, {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed break-words">{fb.content}</p>
                           </div>
-                          <p className="text-sm text-muted-foreground">{feedback.content}</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-shrink-0 items-center gap-2">
-                        {statusBadge(feedback.status)}
-                        {feedback.status === 'pending' && (
                           <button
-                            onClick={() => handleResolveFeedback(feedback.id)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg text-primary transition-colors hover:text-foreground"
-                            style={{ background: 'rgba(163,230,53,0.1)' }}
+                            onClick={() => handleResolveFeedback(fb.id)}
+                            className="flex-shrink-0 flex items-center gap-1 rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-[10px] font-bold text-foreground transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary active:scale-95"
                           >
-                            <Check size={13} />
+                            <Check className="h-3 w-3" />
+                            Mark Reviewed
                           </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
 
+                {/* Categories & Templates Summary */}
+                <div 
+                  className="rounded-xl border border-border overflow-hidden" 
+                  style={{ background: 'var(--card)' }}
+                >
+                  <div className="border-b border-border bg-muted/10 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-black text-foreground">Content Taxonomies</h3>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Manage and inspect training structures used by students.</p>
+                    </div>
+                    <div className="flex rounded-lg bg-muted p-0.5 w-fit">
+                      <button
+                        onClick={() => setActiveSummaryTab('categories')}
+                        className={`rounded-md px-3 py-1 text-xs font-bold transition-all ${
+                          activeSummaryTab === 'categories' 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Categories ({categories.length})
+                      </button>
+                      <button
+                        onClick={() => setActiveSummaryTab('templates')}
+                        className={`rounded-md px-3 py-1 text-xs font-bold transition-all ${
+                          activeSummaryTab === 'templates' 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Workout Templates ({templates.length})
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-4">
+                    {activeSummaryTab === 'categories' ? (
+                      categories.length === 0 ? (
+                        <div className="p-8 text-center text-xs text-muted-foreground italic">
+                          No exercise categories found in system database.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          {categories.map((cat) => (
+                            <div 
+                              key={cat.id} 
+                              className="rounded-xl border border-border p-4 flex items-start gap-3 bg-muted/10"
+                            >
+                              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary flex-shrink-0">
+                                {getCategoryIcon(cat.icon)}
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-xs font-bold text-foreground block">{cat.name}</span>
+                                <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed truncate-2-lines">{cat.description || 'No description supplied.'}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    ) : (
+                      templates.length === 0 ? (
+                        <div className="p-8 text-center text-xs text-muted-foreground italic">
+                          No workout templates found in system database.
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-xs border-collapse">
+                            <thead>
+                              <tr className="border-b border-border text-muted-foreground font-semibold">
+                                <th className="pb-2">Name</th>
+                                <th className="pb-2">Category</th>
+                                <th className="pb-2 text-right">Standard Duration</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border/50">
+                              {templates.map((tpl) => (
+                                <tr key={tpl.id} className="text-foreground">
+                                  <td className="py-2.5 font-bold">{tpl.name}</td>
+                                  <td className="py-2.5">
+                                    <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                      {tpl.category}
+                                    </span>
+                                  </td>
+                                  <td className="py-2.5 text-right font-medium text-muted-foreground flex items-center justify-end gap-1">
+                                    <Clock size={11} />
+                                    {tpl.durationMinutes} min
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column (Sidebar console navigation & analytics logs) */}
+              <div className="space-y-6">
+                
+                {/* Console Shortcuts Grid */}
+                <div 
+                  className="rounded-xl border border-border p-5 space-y-4"
+                  style={{ background: 'var(--card)' }}
+                >
+                  <div>
+                    <h3 className="text-sm font-black text-foreground">Console Shortcuts</h3>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Quick routes to specialized management lists.</p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {[
+                      { name: 'Users', path: '/admin/users', icon: Users, desc: 'Update student roles and states', count: data.totalUsersCount },
+                      { name: 'Categories', path: '/admin/categories', icon: Tag, desc: 'Manage workout taxonomies', count: data.totalCategoriesCount },
+                      { name: 'Templates', path: '/admin/templates', icon: FileCode2, desc: 'Configure default schedules' },
+                      { name: 'Challenges', path: '/admin/challenges', icon: Trophy, desc: 'Design student challenges' },
+                      { name: 'Announcements', path: '/admin/announcements', icon: Megaphone, desc: 'Publish notifications' },
+                      { name: 'Feedback', path: '/admin/feedback', icon: MessageSquare, desc: 'Examine complete reports', count: data.totalFeedbackCount }
+                    ].map((shortcut) => {
+                      const Icon = shortcut.icon;
+                      return (
+                        <Link 
+                          key={shortcut.name}
+                          to={shortcut.path}
+                          className="group rounded-xl border border-border p-3 flex items-start justify-between bg-muted/10 transition-all hover:border-primary/40 hover:bg-white/[0.01]"
+                        >
+                          <div className="flex gap-2.5 min-w-0">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0">
+                              <Icon size={14} />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">{shortcut.name}</span>
+                                {shortcut.count !== undefined && (
+                                  <span className="rounded-full bg-muted px-1.5 py-0.2 text-[9px] font-bold text-muted-foreground">
+                                    {shortcut.count}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{shortcut.desc}</p>
+                            </div>
+                          </div>
+                          <ArrowRight size={12} className="text-muted-foreground/60 group-hover:text-primary group-hover:translate-x-0.5 transition-all mt-1 flex-shrink-0" />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Recent Platform Workouts */}
+                <div 
+                  className="rounded-xl border border-border p-5 space-y-4"
+                  style={{ background: 'var(--card)' }}
+                >
+                  <div>
+                    <h3 className="text-sm font-black text-foreground">Recent Activity Logs</h3>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Most recent logs registered across the platform.</p>
+                  </div>
+                  <div className="space-y-3">
+                    {(!data.recentWorkouts || data.recentWorkouts.length === 0) ? (
+                      <div className="text-center text-xs text-muted-foreground italic py-4">
+                        No platform activity logged.
+                      </div>
+                    ) : (
+                      data.recentWorkouts.map((workout) => (
+                        <div key={workout.id} className="flex items-center justify-between text-xs gap-3">
+                          <div className="min-w-0">
+                            <span className="font-bold text-foreground block truncate">{workout.userName}</span>
+                            <span className="text-[10px] text-muted-foreground">{workout.workoutType}</span>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <span className="font-semibold text-primary block">{workout.durationMinutes} min</span>
+                            <span className="text-[9px] text-muted-foreground">
+                              {workout.createdAt ? new Date(workout.createdAt).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric'
+                              }) : 'N/A'}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            </div>
           </>
         )}
       </div>

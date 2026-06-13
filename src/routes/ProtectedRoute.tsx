@@ -21,7 +21,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    const redirectPath = allowedRole === 'admin' ? '/admin/login' : '/login';
+    return <Navigate to={redirectPath} replace />;
   }
 
   if (allowedRole && user.role !== allowedRole) {

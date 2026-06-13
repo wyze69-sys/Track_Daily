@@ -1,8 +1,8 @@
-// FitSync v2 Frontend Service API Layer
+// logweb v2 Frontend Service API Layer
 const API_BASE = '/api';
 
 function getHeaders() {
-  const token = localStorage.getItem('fitsync_token');
+  const token = localStorage.getItem('logweb_token');
   const headers: { [key: string]: string } = {
     'Content-Type': 'application/json'
   };
@@ -97,8 +97,8 @@ export const authService = {
   },
 
   logout(): void {
-    localStorage.removeItem('fitsync_token');
-    localStorage.removeItem('fitsync_user');
+    localStorage.removeItem('logweb_token');
+    localStorage.removeItem('logweb_user');
   }
 };
 
@@ -284,6 +284,8 @@ export interface AdminDashboardData {
   totalXpEarned: number;
   categories: any[];
   recentFeedback: any[];
+  recentUsers: any[];
+  recentWorkouts: any[];
 }
 
 export const adminService = {

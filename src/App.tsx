@@ -4,7 +4,8 @@ import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 
 // Pages
-import { AuthPage } from './pages/AuthPage';
+import { StudentLoginPage } from './pages/StudentLoginPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
 import { StudentDashboard } from './pages/StudentDashboard';
 import { QuickLog } from './pages/QuickLog';
 import { WeeklyPlan } from './pages/WeeklyPlan';
@@ -27,8 +28,9 @@ export default function App() {
       <AuthProvider>
         <Routes>
           {/* Public Auth Routes */}
-          <Route path="/login" element={<AuthPage />} />
-          <Route path="/register" element={<AuthPage />} />
+          <Route path="/login" element={<StudentLoginPage initialMode="login" />} />
+          <Route path="/register" element={<StudentLoginPage initialMode="register" />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
 
           {/* Student Auth-Protected Routes */}
           <Route

@@ -41,10 +41,10 @@ export const StudentTopNav: React.FC = () => {
         <div className="flex items-center gap-6">
           <Link to="/dashboard" className="flex items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-600 text-white font-bold text-lg shadow-sm">
-              F
+              L
             </span>
             <span className="font-sans font-bold tracking-tight text-xl text-gray-900">
-              FitSync<span className="text-teal-600 font-medium text-sm ml-1">v2</span>
+              logweb<span className="text-teal-600 font-medium text-sm ml-1">v2</span>
             </span>
           </Link>
 

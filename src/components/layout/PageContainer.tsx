@@ -111,7 +111,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
               {isAdminRoute ? <Shield size={17} color="#09090f" strokeWidth={2.5} /> : <Zap size={18} color="#09090f" strokeWidth={2.5} />}
             </div>
             <span className="text-lg font-black tracking-tight text-foreground">
-              FitSync
+              logweb
               {isAdminRoute && <span className="ml-1 text-xs font-bold text-primary">Admin</span>}
             </span>
           </Link>
@@ -131,7 +131,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
             {initialsFor(user?.fullName)}
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-foreground">{user?.fullName || (isAdminRoute ? 'Admin user' : 'FitSync user')}</p>
+            <p className="truncate text-sm font-bold text-foreground">{user?.fullName || (isAdminRoute ? 'Admin user' : 'logweb user')}</p>
             <div className="flex items-center gap-1.5">
               {isAdminRoute ? (
                 <>
@@ -226,7 +226,7 @@ export const PageContainer: React.FC<PageContainerProps> = ({ children }) => {
             <div className="flex h-6 w-6 items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, #a3e635, #84cc16)' }}>
               <Zap size={13} color="#09090f" strokeWidth={2.5} />
             </div>
-            <span className="text-base font-black text-foreground">FitSync</span>
+            <span className="text-base font-black text-foreground">logweb</span>
           </div>
         </header>
 
