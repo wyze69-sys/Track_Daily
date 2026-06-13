@@ -16,6 +16,9 @@ export type { WorkoutTemplate } from './templateService';
 export { categoryService, exerciseLibraryService } from './categoryService';
 export type { ExerciseCategory, ExerciseLibraryItem } from './categoryService';
 
+export { activityLibraryService } from './activityLibraryService';
+export type { ActivityLibraryItem } from './activityLibraryService';
+
 export { weeklyPlanService, progressService, gamificationService } from './gamificationService';
 export { insightService } from './insightService';
 export { nutritionService } from './nutritionService';

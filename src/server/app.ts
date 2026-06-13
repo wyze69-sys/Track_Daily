@@ -13,6 +13,7 @@ import announcementRoutes from './routes/announcementRoutes';
 import feedbackRoutes from './routes/feedbackRoutes';
 import nutritionRoutes from './routes/nutritionRoutes';
 import profileRoutes from './routes/profileRoutes';
+import activityLibraryRoutes from './routes/activityLibraryRoutes';
 
 export const app = express();
 
@@ -35,5 +36,7 @@ app.use('/api/announcements', announcementRoutes);
 app.use('/api/feedback',      feedbackRoutes);
 app.use('/api/nutrition',     nutritionRoutes);
 app.use('/api/profile',       profileRoutes);
+app.use('/api/activity-library', activityLibraryRoutes);
+app.use('/api/exercises',     activityLibraryRoutes);
 
 

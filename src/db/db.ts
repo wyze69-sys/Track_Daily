@@ -33,6 +33,20 @@ export interface UserProfile {
   allergies?: string[] | null;
 }
 
+export interface ActivityLibraryItem {
+  id: string;
+  categoryId: string;
+  categoryName: string;
+  name: string;
+  normalizedName: string;
+  trackingType: 'sets_reps_weight' | 'duration_distance' | 'duration_focus' | 'duration_intensity' | string;
+  tags: string[];
+  difficulty?: 'beginner' | 'intermediate' | 'advanced' | string;
+  isActive: boolean;
+  source: 'default' | 'admin' | 'custom';
+  createdByUserId?: string | null;
+}
+
 export interface ExerciseCategory {
   id: string;
   name: string;
@@ -126,6 +140,7 @@ export interface DatabaseSchema {
   userChallenges: UserChallenge[];
   announcements: Announcement[];
   feedback: Feedback[];
+  activityLibrary?: ActivityLibraryItem[];
 }
 
 const DB_FILE_PATH = path.join(process.cwd(), 'src', 'db', 'db.json');
@@ -148,12 +163,24 @@ let dbState: DatabaseSchema = {
   challenges: [],
   userChallenges: [],
   announcements: [],
-  feedback: []
+  feedback: [],
+  activityLibrary: []
 };
+
+let initialActivities: ActivityLibraryItem[] = [];
+try {
+  const seedPath = path.join(process.cwd(), 'database', 'seed', 'activity-library.json');
+  if (fs.existsSync(seedPath)) {
+    initialActivities = JSON.parse(fs.readFileSync(seedPath, 'utf8'));
+  }
+} catch (e) {
+  console.error("Failed to load default activities seed", e);
+}
 
 // Seed utility (bcrypt hashed hashes ready for: admin / password)
 // Admin target hash for password 'admin': $2a$10$7XvW78Mh.e9K1sP.6G9h8.aFAnBwS/6yWeu8uPhU2qCHzTq.V.3pC (will use simplified comparison or fallback, but keeping it standard)
 const SEED_DATA: DatabaseSchema = {
+  activityLibrary: initialActivities,
   users: [
     {
       id: "u-admin",
@@ -330,6 +357,10 @@ export function readDatabase(): DatabaseSchema {
     if (fs.existsSync(DB_FILE_PATH)) {
       const raw = fs.readFileSync(DB_FILE_PATH, 'utf8');
       dbState = JSON.parse(raw);
+      if (!dbState.activityLibrary || dbState.activityLibrary.length === 0) {
+        dbState.activityLibrary = JSON.parse(JSON.stringify(initialActivities));
+        writeDatabase(dbState);
+      }
     } else {
       // Create seed
       dbState = JSON.parse(JSON.stringify(SEED_DATA));
