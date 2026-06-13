@@ -20,22 +20,24 @@ export interface UserMeResponse {
   profile: any;
 }
 
+const toUserSession = (res: any): UserSession => ({
+  token: res.token,
+  user: {
+    id: res.user.id,
+    email: res.user.email,
+    role: res.user.role === 'admin' ? 'admin' : 'student',
+    fullName: res.user.fullName || '',
+    avatar: res.user.avatar || ''
+  }
+});
+
 export const authService = {
   async register(email: string, passwordHash: string, fullName: string): Promise<UserSession> {
     const res = await request<any>(`${API_BASE}/auth/register`, {
       method: 'POST',
-      body: JSON.stringify({ email, password: passwordHash, name: fullName })
+      body: JSON.stringify({ email, password: passwordHash, fullName })
     });
-    return {
-      token: res.token,
-      user: {
-        id: res.user.id,
-        email: res.user.email,
-        role: res.user.role === 'admin' ? 'admin' : 'student',
-        fullName: res.user.name || '',
-        avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(res.user.name || '')}`
-      }
-    };
+    return toUserSession(res);
   },
 
   async login(email: string, passwordHash: string): Promise<UserSession> {
@@ -43,16 +45,7 @@ export const authService = {
       method: 'POST',
       body: JSON.stringify({ email, password: passwordHash })
     });
-    return {
-      token: res.token,
-      user: {
-        id: res.user.id,
-        email: res.user.email,
-        role: res.user.role === 'admin' ? 'admin' : 'student',
-        fullName: res.user.name || '',
-        avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(res.user.name || '')}`
-      }
-    };
+    return toUserSession(res);
   },
 
   async me(): Promise<UserMeResponse> {
@@ -61,9 +54,9 @@ export const authService = {
       id: res.id,
       email: res.email,
       role: res.role === 'admin' ? 'admin' : 'student',
-      fullName: res.name || '',
-      avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(res.name || '')}`,
-      profile: res
+      fullName: res.fullName || '',
+      avatar: res.avatar || '',
+      profile: res.profile || res
     };
   },
 

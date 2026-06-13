@@ -7,7 +7,8 @@ import { authMiddleware, AuthenticatedRequest, JWT_SECRET } from '../middleware/
 const router = express.Router();
 
 router.post('/register', (req, res) => {
-  const { email, password, fullName } = req.body;
+  const { email, password } = req.body;
+  const fullName = typeof req.body.fullName === 'string' ? req.body.fullName : req.body.name;
   if (!email || !password || !fullName) {
     res.status(400).json({ error: 'All fields are strictly required: email, password, fullName' });
     return;
