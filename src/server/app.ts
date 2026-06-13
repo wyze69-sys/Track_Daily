@@ -41,4 +41,9 @@ app.use('/api/activity-library', activityLibraryRoutes);
 app.use('/api/exercises',     activityLibraryRoutes);
 app.use('/api/admin/activities', adminActivityLibraryRoutes);
 
+// Keep unmatched API requests as JSON instead of falling through to the Vite SPA HTML.
+// This prevents frontend errors like: Unexpected token '<', "<!doctype "... is not valid JSON.
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: `API route not found: ${req.method} ${req.originalUrl}` });
+});
 
