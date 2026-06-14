@@ -1,5 +1,5 @@
 -- Migration: Announcements Table
-USE fitsync_db;
+USE track_daily;
 
 CREATE TABLE IF NOT EXISTS announcements (
   id VARCHAR(50) PRIMARY KEY,

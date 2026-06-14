@@ -1,5 +1,5 @@
 -- Migration: Workout Templates Table
-USE fitsync_db;
+USE track_daily;
 
 CREATE TABLE IF NOT EXISTS workout_templates (
   id VARCHAR(50) PRIMARY KEY,

@@ -15,6 +15,19 @@ function toNumberOrUndefined(value) {
 }
 
 function mapUserRow(row) {
+  let parsedAllergies = [];
+  if (row.allergies) {
+    if (typeof row.allergies === "string") {
+      try {
+        parsedAllergies = JSON.parse(row.allergies);
+      } catch (e) {
+        parsedAllergies = [];
+      }
+    } else if (Array.isArray(row.allergies)) {
+      parsedAllergies = row.allergies;
+    }
+  }
+
   return {
     id: row.id,
     email: row.email,
@@ -25,11 +38,14 @@ function mapUserRow(row) {
     gender: row.gender || undefined,
     height: toNumberOrUndefined(row.height),
     weight: toNumberOrUndefined(row.weight),
+    weightKg: toNumberOrUndefined(row.weight_kg),
     totalXp: toNumberOrUndefined(row.total_xp),
     targetWeight: toNumberOrUndefined(row.target_weight),
     preferredWorkoutType: row.preferred_workout_type || undefined,
     goal: row.goal || undefined,
     activityLevel: row.activity_level || undefined,
+    dietPreference: row.diet_preference || undefined,
+    allergies: parsedAllergies,
     isActive: row.is_active === undefined || row.is_active === null ? true : Boolean(row.is_active),
     createdAt: formatTimestamp(row.created_at),
     updatedAt: formatTimestamp(row.updated_at)

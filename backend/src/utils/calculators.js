@@ -1,6 +1,23 @@
 const DEFAULT_WEIGHT_KG = 70;
 const DISTANCE_XP_FACTOR = 0.8;
 
+let activityLibrary = [];
+try {
+  const fs = require('fs');
+  const path = require('path');
+  const seedPath = path.join(process.cwd(), 'database', 'seed', 'activity-library.json');
+  if (fs.existsSync(seedPath)) {
+    activityLibrary = JSON.parse(fs.readFileSync(seedPath, 'utf8'));
+  } else {
+    const altPath = path.join(process.cwd(), '..', 'database', 'seed', 'activity-library.json');
+    if (fs.existsSync(altPath)) {
+      activityLibrary = JSON.parse(fs.readFileSync(altPath, 'utf8'));
+    }
+  }
+} catch (e) {
+  // Ignore
+}
+
 const CATEGORY_PROFILES = {
   cardio: { baseMet: 7.5, xpPerMetMin: 0.18 },
   strength: { baseMet: 6, xpPerMetMin: 0.2 },
@@ -107,25 +124,28 @@ function calculateCalories(workout, weightKg = DEFAULT_WEIGHT_KG, options = {}) 
   const profile = resolveCategoryProfile(slug, options.categoryMeta);
   const durationMin = getDurationMinutes(workout);
   const distanceKm = getDistanceKm(workout);
-  const met = options.met || calculateMet(slug, distanceKm, durationMin, profile.baseMet);
-  return Math.round(met * Number(weightKg || DEFAULT_WEIGHT_KG) * (durationMin / 60));
-}
 
-let activityLibrary = [];
-try {
-  const fs = require('fs');
-  const path = require('path');
-  const seedPath = path.join(process.cwd(), 'database', 'seed', 'activity-library.json');
-  if (fs.existsSync(seedPath)) {
-    activityLibrary = JSON.parse(fs.readFileSync(seedPath, 'utf8'));
-  } else {
-    const altPath = path.join(process.cwd(), '..', 'database', 'seed', 'activity-library.json');
-    if (fs.existsSync(altPath)) {
-      activityLibrary = JSON.parse(fs.readFileSync(altPath, 'utf8'));
+  let defaultMet = profile.baseMet;
+  if (!options.met && Array.isArray(workout.exercises) && workout.exercises.length > 0) {
+    const exercises = workout.exercises;
+    const activities = options.activities || activityLibrary || [];
+    let foundMet = undefined;
+    for (const ex of exercises) {
+      const exName = String(ex.exerciseName || ex.name || "").toLowerCase().trim();
+      const exLibId = ex.libraryId;
+      let act = activities.find(a => (exLibId && a.id === exLibId) || (exName && (a.name.toLowerCase().trim() === exName || a.normalizedName === exName)));
+      if (act && typeof act.defaultMet === 'number') {
+        foundMet = act.defaultMet;
+        break;
+      }
+    }
+    if (foundMet !== undefined) {
+      defaultMet = foundMet;
     }
   }
-} catch (e) {
-  // Ignore
+
+  const met = options.met || calculateMet(slug, distanceKm, durationMin, defaultMet);
+  return Math.round(met * Number(weightKg || DEFAULT_WEIGHT_KG) * (durationMin / 60));
 }
 
 function calculateWorkoutXp(workout, options = {}) {

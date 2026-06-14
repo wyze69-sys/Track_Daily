@@ -16,10 +16,10 @@ const PORT = Number(process.env.PORT || 5000);
 initializeDatabase()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`FitSync backend running on http://localhost:${PORT}`);
+      console.log(`track_daily backend running on http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("Failed to start FitSync backend:", err);
+    console.error("Failed to start track_daily backend:", err);
     process.exit(1);
   });

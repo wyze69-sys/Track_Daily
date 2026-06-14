@@ -14,6 +14,8 @@ const weeklyPlanRoutes = require("./weeklyPlanRoutes");
 const progressRoutes = require("./progressRoutes");
 const aiRoutes = require("./aiRoutes");
 const exerciseRoutes = require("./exerciseRoutes");
+const activityLibraryRoutes = require("./activityLibraryRoutes");
+const nutritionRoutes = require("./nutritionRoutes");
 
 const router = Router();
 
@@ -32,5 +34,7 @@ router.use("/admin", adminRoutes);
 router.use("/weekly-plan", weeklyPlanRoutes);
 router.use("/progress", progressRoutes);
 router.use("/insights", aiRoutes);
+router.use("/activity-library", activityLibraryRoutes);
+router.use("/nutrition", nutritionRoutes);
 
 module.exports = router;

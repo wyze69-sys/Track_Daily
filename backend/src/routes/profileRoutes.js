@@ -13,4 +13,7 @@ router.post(
   profileController.updateProfile
 );
 
+router.get("/nutrition", authenticateToken, profileController.getNutritionProfile);
+router.put("/nutrition", authenticateToken, profileController.updateNutritionProfile);
+
 module.exports = router;

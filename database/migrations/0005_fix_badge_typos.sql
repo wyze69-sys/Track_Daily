@@ -3,7 +3,7 @@
 -- in any achievement rows that were seeded with the wrong text.
 -- This is idempotent: safe to run multiple times.
 
-USE fitsync_db;
+USE track_daily;
 
 -- Fix any achievement whose description contains the misspelling "Roached"
 UPDATE achievements

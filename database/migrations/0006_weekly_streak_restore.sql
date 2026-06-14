@@ -1,5 +1,5 @@
 -- Migration 0006: Weekly streak and restore fields.
-USE fitsync_db;
+USE track_daily;
 
 DROP PROCEDURE IF EXISTS add_column_if_missing;
 DELIMITER $$

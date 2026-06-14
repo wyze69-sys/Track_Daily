@@ -1,5 +1,5 @@
 -- Migration 0010: Seed 125 default activities into exercise_library
-USE fitsync_db;
+USE track_daily;
 
 INSERT INTO exercise_library
   (id, name, category_id, muscle_group, equipment, exercise_type, default_duration, is_custom)

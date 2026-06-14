@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+@import "tailwindcss";
+
+:root {
+  --font-size: 16px;
+  --background: #09090f;
+  --foreground: #f0f0f5;
+  --card: #111118;
+  --card-foreground: #f0f0f5;
+  --popover: #17171f;
+  --popover-foreground: #f0f0f5;
+  --primary: #a3e635;
+  --primary-foreground: #09090f;
+  --secondary: #1e1e2a;
+  --secondary-foreground: #f0f0f5;
+  --muted: #1a1a24;
+  --muted-foreground: #8888a0;
+  --accent: #84cc16;
+  --accent-foreground: #09090f;
+  --destructive: #ef4444;
+  --border: rgba(255, 255, 255, 0.08);
+  --input-background: #1e1e2a;
+  --ring: #a3e635;
+  --chart-1: #a3e635;
+  --chart-2: #38bdf8;
+  --chart-3: #f97316;
+  --chart-4: #a78bfa;
+  --chart-5: #fb7185;
+  --sidebar: #0d0d14;
+  --sidebar-foreground: #f0f0f5;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+}
+
+@theme inline {
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input-background: var(--input-background);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --radius-xl: 0.9rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: var(--font-size);
+  background: var(--background);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
+h1, h2, h3, h4 {
+  color: var(--foreground);
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+button, input, textarea, select {
+  font-family: var(--font-sans);
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+/* Compatibility layer: make older track_daily pages inherit the Figma dark interface instead of the old white UI. */
+.bg-white,
+.bg-gray-50,
+.bg-slate-50,
+.bg-teal-50,
+.bg-emerald-50,
+.bg-purple-50,
+.bg-orange-50,
+.bg-red-50,
+.bg-blue-50,
+.bg-amber-50 {
+  background-color: var(--card) !important;
+}
+
+.bg-gray-100,
+.bg-slate-100,
+.bg-teal-100,
+.bg-emerald-100,
+.bg-purple-100,
+.bg-orange-100,
+.bg-red-100,
+.bg-blue-100,
+.bg-amber-100 {
+  background-color: var(--muted) !important;
+}
+
+.border,
+.border-gray-50,
+.border-gray-100,
+.border-gray-150,
+.border-gray-200,
+.border-slate-100,
+.border-slate-200,
+.border-teal-100,
+.border-emerald-100,
+.border-orange-100,
+.border-purple-100,
+.border-red-100,
+.border-blue-100,
+.border-amber-100 {
+  border-color: var(--border) !important;
+}
+
+.text-gray-950,
+.text-gray-900,
+.text-gray-850,
+.text-gray-800,
+.text-slate-950,
+.text-slate-900,
+.text-slate-800 {
+  color: var(--foreground) !important;
+}
+
+.text-gray-700,
+.text-gray-650,
+.text-gray-600,
+.text-gray-500,
+.text-gray-400,
+.text-slate-700,
+.text-slate-600,
+.text-slate-500,
+.text-slate-400 {
+  color: var(--muted-foreground) !important;
+}
+
+.text-teal-700,
+.text-teal-600,
+.text-emerald-700,
+.text-emerald-600 {
+  color: var(--primary) !important;
+}
+
+.bg-teal-600,
+.bg-teal-700,
+.bg-emerald-600,
+.bg-emerald-700 {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+input, textarea, select {
+  background-color: var(--input-background) !important;
+  border-color: var(--border) !important;
+  color: var(--foreground) !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--muted-foreground) !important;
+}
+
+.shadow-xs, .shadow-sm, .shadow-md {
+  box-shadow: none !important;
+}
+
+.rounded-2xl {
+  border-radius: 1rem !important;
+}
+
+.transition-all, .transition-colors {
+  transition-duration: 220ms;
+}

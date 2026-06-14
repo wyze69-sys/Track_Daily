@@ -1,5 +1,5 @@
 -- Migration: Challenges Table
-USE fitsync_db;
+USE track_daily;
 
 CREATE TABLE IF NOT EXISTS challenges (
   id VARCHAR(50) PRIMARY KEY,

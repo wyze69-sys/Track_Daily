@@ -3,8 +3,8 @@ const { createId } = require("../utils/ids");
 const { calculateBMI } = require("../utils/calculateBMI");
 const { mapUserRow } = require("../utils/rowMappers");
 
-const USER_COLUMNS = `id, email, name, role, password_hash, age, gender, height, weight,
-  target_weight, preferred_workout_type, goal, activity_level, is_active, created_at, updated_at`;
+const USER_COLUMNS = `id, email, name, role, password_hash, age, gender, height, weight, weight_kg,
+  target_weight, preferred_workout_type, goal, activity_level, diet_preference, allergies, is_active, created_at, updated_at`;
 
 async function getUserById(id) {
   const [rows] = await pool.execute(`SELECT ${USER_COLUMNS} FROM users WHERE id = ?`, [id]);
@@ -84,10 +84,10 @@ async function createUser(user) {
 
     await connection.execute(
       `INSERT INTO users (
-         id, email, name, role, password_hash, age, gender, height, weight,
+         id, email, name, role, password_hash, age, gender, height, weight, weight_kg,
          target_weight, preferred_workout_type, goal, activity_level
        )
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         email,
@@ -98,6 +98,7 @@ async function createUser(user) {
         user.gender || null,
         user.height || null,
         user.weight || null,
+        user.weight || null, // weight_kg
         user.targetWeight || null,
         user.preferredWorkoutType || null,
         goal,
@@ -161,10 +162,13 @@ const PROFILE_FIELD_MAP = {
   gender: "gender",
   height: "height",
   weight: "weight",
+  weightKg: "weight_kg",
   targetWeight: "target_weight",
   preferredWorkoutType: "preferred_workout_type",
   goal: "goal",
-  activityLevel: "activity_level"
+  activityLevel: "activity_level",
+  dietPreference: "diet_preference",
+  allergies: "allergies"
 };
 
 async function updateUser(id, updates) {

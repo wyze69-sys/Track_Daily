@@ -1,16 +1,16 @@
 # Activity Library
 
-This document explains the architecture, storage, query parameters, duplicate avoidance, and backward compatibility mappings of the **Activity Library** in logweb.
+This document explains the architecture, storage, query parameters, duplicate avoidance, and backward compatibility mappings of the **Activity Library** in track_daily.
 
 ## Storage Locations
 
-To keep development simple while supporting production relational databases:
-1. **TS Server (In-Memory/JSON Database)**:
-   - File: `src/db/db.json` (managed under `src/db/db.ts`)
+To support production relational databases:
+1. **TS Server (Legacy/Archived)**:
+   - File: `docs/legacy-src-server/db/db.json` (previously managed under `src/db/db.ts`)
    - Table: `activityLibrary`
    - Seed Source: `database/seed/activity-library.json`
-   - Population: Automatically loaded from the seed JSON on server start if `activityLibrary` is empty or missing.
-2. **MySQL Database (Staging/Production)**:
+   - Status: Deprecated. The mock TypeScript server has been removed from the active app.
+2. **MySQL Database (Active Backend)**:
    - Table: `exercise_library`
    - Migration/Seed: `database/migrations/0010_activity_library_seeds.sql`
 
